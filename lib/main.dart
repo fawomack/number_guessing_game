@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math'; 
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Guessing Game',
-      // FIXED: This line completely removes the red "Debug" banner!
       debugShowCheckedModeBanner: false, 
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF003D82), 
@@ -33,7 +33,6 @@ class MainMenuScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Title Text
               const Text(
                 'NUMBERS\nGAME',
                 textAlign: TextAlign.center,
@@ -108,6 +107,15 @@ class MainMenuScreen extends StatelessWidget {
   }
 }
 
+// Custom structure to hold both the guess number label and the visual value safely
+class GuessRecord {
+  final int attemptNumber;
+  final int guessValue;
+  final String icon;
+
+  GuessRecord({required this.attemptNumber, required this.guessValue, required this.icon});
+}
+
 // --- SOLO GAME SCREEN ---
 class SoloGameScreen extends StatefulWidget {
   const SoloGameScreen({super.key});
@@ -117,11 +125,90 @@ class SoloGameScreen extends StatefulWidget {
 }
 
 class _SoloGameScreenState extends State<SoloGameScreen> {
-  int _secretNumber = 42; 
+  late int _secretNumber; 
   int _attempts = 0;
   String _hintMessage = "Enter a number from 1 to 100";
+  bool _isGameOver = false; 
+  
+  // CHANGED: Using a custom structured log list to keep tracking data clean
+  List<GuessRecord> _guessHistory = [];
   
   final TextEditingController _guessController = TextEditingController();
+  final FocusNode _guessFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _startNewGame(); 
+  }
+
+  @override
+  void dispose() {
+    _guessFocusNode.dispose();
+    _guessController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _startNewGame() {
+    setState(() {
+      _secretNumber = Random().nextInt(100) + 1; 
+      _attempts = 0;
+      _hintMessage = "Enter a number from 1 to 100";
+      _isGameOver = false;
+      _guessHistory = []; 
+      _guessController.clear();
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _guessFocusNode.requestFocus();
+      });
+    });
+  }
+
+  void _checkGuess() {
+    int? userGuess = int.tryParse(_guessController.text);
+    if (userGuess == null) return;
+
+    // FIXED: Range Protection Guardrail! Stops execution if out of boundaries
+    if (userGuess < 1 || userGuess > 100) {
+      setState(() {
+        _hintMessage = "❌ Out of bounds!\nStay between 1 and 100.";
+        _guessController.clear();
+        _guessFocusNode.requestFocus();
+      });
+      return; 
+    }
+
+    setState(() {
+      _attempts++; 
+
+      if (userGuess == _secretNumber) {
+        _hintMessage = "🎉 You Win! 🎉\nThe number was $_secretNumber!";
+        _isGameOver = true;
+        _guessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: userGuess, icon: "🎉"));
+      } else if (userGuess > _secretNumber) {
+        _hintMessage = "Too High! 📈";
+        _guessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: userGuess, icon: "📈")); 
+      } else {
+        _hintMessage = "Too Low! 📉";
+        _guessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: userGuess, icon: "📉")); 
+      }
+      
+      _guessController.clear();
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+        _guessFocusNode.requestFocus();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -129,16 +216,15 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        automaticallyImplyLeading: false, // Prevents Flutter from forcing a left back arrow
+        automaticallyImplyLeading: false, 
         actions: [
-          // FIXED: Moved the 'X' button to the top-right actions menu!
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white, size: 28),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
-          const SizedBox(width: 10), // Gives the button a tiny bit of breathing room from the edge
+          const SizedBox(width: 10), 
         ],
       ),
       body: Center(
@@ -147,58 +233,87 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // FIXED: Added intro text above the hint message
               const Text(
                 'I picked a number!\nNow you have to guess.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 15),
               
-              // Hint message indicator
               Text(
                 _hintMessage,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: const Color(0xFFFF8C00), // Switched to orange to prioritize it visually!
-                  fontSize: 18, 
-                  fontWeight: FontWeight.w500,
-                ),
+                style: const TextStyle(color: Color(0xFFFF8C00), fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
               
-              // Attempts tracker text
               Text(
                 'Attempts: $_attempts',
-                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16),
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 16),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 25),
 
-              // Number pad input box
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _guessController,
-                  keyboardType: TextInputType.number, 
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFFFF8C00), fontSize: 32, fontWeight: FontWeight.bold),
-                  decoration: const InputDecoration(
-                    enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFF8C00), width: 2),
-                    ),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Color(0xFFFF8C00), width: 3),
+              // FIXED: Upgraded layout cards to stack labels neatly and render in white text
+              if (_guessHistory.isNotEmpty)
+                SizedBox(
+                  height: 65, // Expanded height slightly to accommodate the stacked text lines comfortably
+                  child: ListView.builder(
+                    controller: _scrollController, 
+                    scrollDirection: Axis.horizontal,
+                    shrinkWrap: true,
+                    physics: const BouncingScrollPhysics(), 
+                    itemCount: _guessHistory.length,
+                    itemBuilder: (context, index) {
+                      final record = _guessHistory[index];
+                      return Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Guess ${record.attemptNumber}",
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "${record.guessValue} ${record.icon}",
+                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              const SizedBox(height: 15),
+
+              if (!_isGameOver)
+                SizedBox(
+                  width: 150,
+                  child: TextField(
+                    controller: _guessController,
+                    focusNode: _guessFocusNode, 
+                    keyboardType: TextInputType.number, 
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Color(0xFFFF8C00), fontSize: 32, fontWeight: FontWeight.bold),
+                    onSubmitted: (_) => _checkGuess(), 
+                    decoration: const InputDecoration(
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFFF8C00), width: 2),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xFFFF8C00), width: 3),
+                      ),
                     ),
                   ),
                 ),
-              ),
               const SizedBox(height: 40),
 
-              // Submit Guess Button
               SizedBox(
                 width: double.infinity,
                 height: 60,
@@ -208,12 +323,32 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: () {
-                    // Logic will go here next!
-                  },
-                  child: const Text('SUBMIT GUESS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  onPressed: _isGameOver ? _startNewGame : _checkGuess,
+                  child: Text(
+                    _isGameOver ? 'PLAY AGAIN' : 'SUBMIT GUESS', 
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
+
+              if (_isGameOver) ...[
+                const SizedBox(height: 15),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white, width: 2), 
+                      foregroundColor: Colors.white, 
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context); 
+                    },
+                    child: const Text('BACK TO MAIN MENU', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
