@@ -107,6 +107,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
         _versusController.clear();
       }
 
+      // Framework micro tasks run post rendering frame loop layout calculations
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
           _scrollController.animateTo(
@@ -115,7 +116,13 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
             curve: Curves.easeOut,
           );
         }
-        _versusFocusNode.requestFocus();
+        
+        // Fixes the mobile focus kick-out bug by waiting out the native OS layout cycle
+        Future.delayed(const Duration(milliseconds: 20), () {
+          if (mounted && _phase != "matchOver") {
+            _versusFocusNode.requestFocus();
+          }
+        });
       });
     });
   }
@@ -307,6 +314,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                       controller: _versusController,
                       focusNode: _versusFocusNode,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.go, // Restructures native platform action keys to prevent keyboard dropouts
                       obscureText: isSettingPhase,
                       textAlign: TextAlign.center,
                       style: TextStyle(color: orangeColor, fontSize: 32, fontWeight: FontWeight.bold),

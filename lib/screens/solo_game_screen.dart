@@ -92,7 +92,13 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
             curve: Curves.easeOut,
           );
         }
-        _guessFocusNode.requestFocus(); // Bypasses browser mechanics to force terminal focus locking
+        
+        // A tiny 20ms delay lets Android finish its native layout shift before we demand focus back
+        Future.delayed(const Duration(milliseconds: 20), () {
+          if (mounted && !_isGameOver) {
+            _guessFocusNode.requestFocus(); // Overrides native mobile layout layout transitions to lock keyboard focus
+          }
+        });
       });
     });
   }
@@ -189,6 +195,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     controller: _guessController, // Hooks input capture controller pipeline
                     focusNode: _guessFocusNode, // Hooks internal hardware key mapping framework
                     keyboardType: TextInputType.number, // Reconfigures system layout panel configuration to numeric mode keys
+                    textInputAction: TextInputAction.go, // Restructures native platform action keys to prevent keyboard dropouts
                     textAlign: TextAlign.center, // Centers active user character entry positioning alignment
                     style: TextStyle(color: orangeColor, fontSize: 32, fontWeight: FontWeight.bold), // Giant orange active text typography
                     onSubmitted: (_) => _checkGuess(), // Automatically invokes validation logic loop on keyboard Enter key hits
