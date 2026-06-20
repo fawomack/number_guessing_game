@@ -10,12 +10,19 @@ class VersusGameScreen extends StatefulWidget {
 }
 
 class _VersusGameScreenState extends State<VersusGameScreen> {
-  // --- STATE ENVIRONMENT VARIABLES ---
-  String _phase = "setting"; // Alternates engine phases: "setting" (Player 1 setup) or "guessing" (Player 2 chase)
-  int? _secretNumber; // Stores Player 1's custom chosen integer target (nullable before lock-in)
-  int _attempts = 0; // Tracks Player 2's total valid round submissions
-  String _hintMessage = "Player 1: Enter a secret number (1-100)"; // Dynamic text block displaying system hints/warnings
-  List<GuessRecord> _guessHistory = []; // Historical log storage array tracking player guess attempts
+  // --- MATCH STATE ENGINE VARIABLES ---
+  String _phase = "p1Setting"; // Tracking phases: "p1Setting", "p2Guessing", "p2Setting", "p1Guessing", "matchOver"
+  int? _secretNumber; // Stores the active target number for the current guessing player
+  int _attempts = 0; // Tracks valid attempts for the current turn
+  String _hintMessage = "Player 1:\nEnter your secret number (1-100)"; // Dynamic HUD hint system
+  
+  // --- INDEPENDENT HISTORICAL LOG CONTAINERS ---
+  List<GuessRecord> _player2GuessHistory = []; // Stores Player 2's historical logs from Leg 1
+  List<GuessRecord> _player1GuessHistory = []; // Stores Player 1's historical logs from Leg 2
+
+  // --- COMPETITIVE MATCH SCOREBOARD ---
+  int? _player2FinalScore; // Tracks how many attempts Player 2 needed to win Leg 1
+  int? _player1FinalScore; // Tracks how many attempts Player 1 needed to win Leg 2
 
   // --- INTERFACE HARDWARE ARCHITECTURE CONTROLLERS ---
   final TextEditingController _versusController = TextEditingController(); // Controls input field data extractions
@@ -25,213 +32,325 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
   @override
   void initState() {
     super.initState();
-    // Forces keyboard layout visibility immediately upon mounting the screen
     WidgetsBinding.instance.addPostFrameCallback((_) => _versusFocusNode.requestFocus());
   }
 
   @override
   void dispose() {
-    _versusController.dispose(); // Wipes text controller cache to free up RAM context
-    _versusFocusNode.dispose(); // Drops target keyboard listener reference safely
-    _scrollController.dispose(); // Detaches scrolling hardware driver tracking to block leaks
+    _versusController.dispose();
+    _versusFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // --- GAMEPLAY LIFE CYCLE METHODS ---
-  void _handleSubmit() {
-    int? inputValue = int.tryParse(_versusController.text); // Parses active field data string safely into an integer
-    if (inputValue == null) return; // Guard clause neutralizing empty submissions or non-numeric entries
+  // --- HELPER WRAPPER TO GET CURRENT ACTIVE HISTORY ---
+  List<GuessRecord> _getActiveHistory() {
+    if (_phase == "p2Guessing") return _player2GuessHistory;
+    if (_phase == "p1Guessing") return _player1GuessHistory;
+    return [];
+  }
 
-    // Range Protection Guardrail
+  // --- CENTRAL GAME LOOP ENGINE ---
+  void _handleSubmit() {
+    int? inputValue = int.tryParse(_versusController.text);
+    if (inputValue == null) return;
+
     if (inputValue < 1 || inputValue > 100) {
       setState(() {
-        _hintMessage = "❌ Out of bounds!\nStay between 1 and 100."; // Warning flag text assignment
-        _versusController.clear(); // Wipes invalid text entry
-        _versusFocusNode.requestFocus(); // Assures keyboard input focus remains locked
+        _hintMessage = "❌ Out of bounds!\nStay between 1 and 100.";
+        _versusController.clear();
+        _versusFocusNode.requestFocus();
       });
       return;
     }
 
     setState(() {
-      if (_phase == "setting") {
-        // --- TRANSITION FROM SETUP PHASE TO PLAY PHASE ---
-        _secretNumber = inputValue; // Locks user target directly into game engine memory state
-        _phase = "guessing"; // Switches global phase tracker to active gameplay cycle
-        _hintMessage = "Player 2: Start guessing!"; // Notifies the second participant to take control
-        _versusController.clear(); // Visual input field cleanup loop
-      } else {
-        // --- STANDARD GUESSING LOGIC ROUND CYCLE ---
-        _attempts++; // Increments target attempt log value tracker
+      // --- PHASE 1: PLAYER 1 LOCKS IN SECRET NUMBER ---
+      if (_phase == "p1Setting") {
+        _secretNumber = inputValue;
+        _phase = "p2Guessing";
+        _hintMessage = "Player 2:\nStart guessing Player 1's number!";
+        _versusController.clear();
+      } 
+      // --- PHASE 2: PLAYER 2 IS ACTIVE GUESSER ---
+      else if (_phase == "p2Guessing") {
+        _attempts++;
         if (inputValue == _secretNumber) {
-          _hintMessage = "🎉 Player 2 Wins! 🎉\nThey found your number: $_secretNumber!"; // Match celebration text assignment
-          _guessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: "🎉")); // Appends terminal winning entry
-        } else if (inputValue > _secretNumber!) {
-          _hintMessage = "Too High! 📈"; // High indicator update
-          _guessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: "📈")); // Appends high guess log capsule
+          _player2FinalScore = _attempts;
+          _hintMessage = "🎉 Player 2 Found It! 🎉\nIt took you $_attempts attempts.";
+          _player2GuessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: "🎉"));
         } else {
-          _hintMessage = "Too Low! 📉"; // Low indicator update
-          _guessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: "📉")); // Appends low guess log capsule
+          _hintMessage = inputValue > _secretNumber! ? "Too High! 📈" : "Too Low! 📉";
+          _player2GuessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: inputValue > _secretNumber! ? "📈" : "📉"));
         }
-        _versusController.clear(); // Cleans entry line text display elements
+        _versusController.clear();
+      } 
+      // --- PHASE 3: PLAYER 2 LOCKS IN SECRET NUMBER ---
+      else if (_phase == "p2Setting") {
+        _secretNumber = inputValue;
+        _phase = "p1Guessing";
+        _hintMessage = "Player 1:\nStart guessing Player 2's number!";
+        _versusController.clear();
+      } 
+      // --- PHASE 4: PLAYER 1 IS ACTIVE GUESSER ---
+      else if (_phase == "p1Guessing") {
+        _attempts++;
+        if (inputValue == _secretNumber) {
+          _player1FinalScore = _attempts;
+          _phase = "matchOver";
+          _hintMessage = _determineWinnerMessage();
+          _player1GuessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: "🎉"));
+        } else {
+          _hintMessage = inputValue > _secretNumber! ? "Too High! 📈" : "Too Low! 📉";
+          _player1GuessHistory.add(GuessRecord(attemptNumber: _attempts, guessValue: inputValue, icon: inputValue > _secretNumber! ? "📈" : "📉"));
+        }
+        _versusController.clear();
       }
 
-      // Framework micro tasks run post rendering frame loop layout calculations
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (_scrollController.hasClients) {
-          // Rolls history logging row view smoothly to the absolute rightmost edge container
           _scrollController.animateTo(
             _scrollController.position.maxScrollExtent,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
           );
         }
-        _versusFocusNode.requestFocus(); // Re-establishes field targeting focus for typing efficiency
+        _versusFocusNode.requestFocus();
       });
     });
   }
 
-  void _resetVersusGame() {
+  // --- TRANSITION TRIGGER BETWEEN MATCH LEGS ---
+  void _advanceToNextLeg() {
     setState(() {
-      _phase = "setting"; // Rolls system loop phase tracking baseline backward
-      _secretNumber = null; // Purges target numerical instance memory context
-      _attempts = 0; // flushes active round metrics data tracking
-      _hintMessage = "Player 1: Enter a secret number (1-100)"; // Resets layout label context strings
-      _guessHistory = []; // Drops historic collections structures
-      _versusController.clear(); // Text box text cleanup loop
-      WidgetsBinding.instance.addPostFrameCallback((_) => _versusFocusNode.requestFocus()); // Locks virtual system focus
+      _phase = "p2Setting";
+      _secretNumber = null;
+      _attempts = 0;
+      _hintMessage = "Player 2:\nEnter your secret number (1-100)";
+      _versusController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _versusFocusNode.requestFocus());
     });
   }
 
-  // --- COMPONENT VISUAL ENGINE DRAW ROUTINES ---
+  String _determineWinnerMessage() {
+    if (_player1FinalScore! < _player2FinalScore!) {
+      return "🏆 Player 1 Wins the Match! 🏆";
+    } else if (_player2FinalScore! < _player1FinalScore!) {
+      return "🏆 Player 2 Wins the Match! 🏆";
+    } else {
+      return "🤝 It's a Dead Draw! 🤝";
+    }
+  }
+
+  // --- TOTAL SYSTEM RESET REBOOT ---
+  void _resetEntireMatch() {
+    setState(() {
+      _phase = "p1Setting";
+      _secretNumber = null;
+      _attempts = 0;
+      _hintMessage = "Player 1:\nEnter your secret number (1-100)";
+      _player2GuessHistory = [];
+      _player1GuessHistory = [];
+      _player1FinalScore = null;
+      _player2FinalScore = null;
+      _versusController.clear();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _versusFocusNode.requestFocus());
+    });
+  }
+
+  // --- REUSABLE HISTORY ROW BUILDER WIDGET ---
+  Widget _buildHistoryRow(String title, List<GuessRecord> history) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 65,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: history.length,
+            itemBuilder: (context, index) {
+              final record = history[index];
+              return Container(
+                margin: const EdgeInsets.only(right: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Guess ${record.attemptNumber}",
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                    ),
+                    Text(
+                      "${record.guessValue} ${record.icon}",
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final orangeColor = Theme.of(context).colorScheme.secondary; // Samples master theme design dictionary orange color key
-    // Evaluate if game completion constraints match state requirements
-    bool isGameOver = _secretNumber != null && _guessHistory.isNotEmpty && _guessHistory.last.guessValue == _secretNumber;
+    final orangeColor = Theme.of(context).colorScheme.secondary;
+    
+    bool isLeg1Over = _phase == "p2Guessing" && _player2FinalScore != null;
+    bool isMatchOver = _phase == "matchOver";
+    bool isSettingPhase = _phase == "p1Setting" || _phase == "p2Setting";
+    List<GuessRecord> currentHistory = _getActiveHistory();
 
     return Scaffold(
-      // --- HEADER APP BAR WRAPPER ---
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Transparent backdrop blending rule
-        elevation: 0, // Removes native navigation shadow rendering properties
-        automaticallyImplyLeading: false, // Disables automatic backwards back-arrow chevron placements
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 28), // Exit control icon button layout rule
-            onPressed: () => Navigator.pop(context), // Safely breaks path context route layer back to Main Menu Screen
+            icon: const Icon(Icons.close, color: Colors.white, size: 28),
+            onPressed: () => Navigator.pop(context),
           ),
-          const SizedBox(width: 10), // Boundary margin layout padding spacer
+          const SizedBox(width: 10),
         ],
       ),
-      
-      // --- CENTRAL VIEWPORT BODY GRID PANEL ---
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0), // Outer viewport padding frame caps
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // Groups visual child rows centrally down y-axis tracking
-            children: [
-              Text(
-                _phase == "setting" ? "VERSUS MODE\nSetup" : "VERSUS MODE\nThe Chase", // Multi-phase header title assignment string
-                textAlign: TextAlign.center, // Alignment alignment constraint rule
-                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold), // Header typography rule
-              ),
-              const SizedBox(height: 15), // Layout spacer
-              Text(
-                _hintMessage,
-                textAlign: TextAlign.center, // Alignment alignment constraint rule
-                style: TextStyle(color: orangeColor, fontSize: 20, fontWeight: FontWeight.bold), // Action label typography rule
-              ),
-              const SizedBox(height: 10), // Layout spacer
-              if (_phase == "guessing")
+          padding: const EdgeInsets.symmetric(horizontal: 30.0),
+          child: SingleChildScrollView( // Prevents layout overflows when the scoreboard stretches out
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 Text(
-                  'Attempts: $_attempts',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 16), // Secondary attempt tally visibility layer
+                  isSettingPhase ? "VERSUS MODE\nSetup" : "VERSUS MODE\nThe Chase",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-              const SizedBox(height: 25), // Layout spacer
-
-              // --- HORIZONTAL SCROLLING HISTORY DASHBOARD PILLS ---
-              if (_guessHistory.isNotEmpty)
-                SizedBox(
-                  height: 65, // Envelope layout tracking constraints height parameter
-                  child: ListView.builder(
-                    controller: _scrollController, // Attaches operational program scrolling tracking hook
-                    scrollDirection: Axis.horizontal, // Directs engine list flow rendering horizontally rightward
-                    shrinkWrap: true, // Condenses outer frame container bounds around operational item counts
-                    itemCount: _guessHistory.length, // Establishes loop index thresholds mapping data size parameters
-                    itemBuilder: (context, index) {
-                      final record = _guessHistory[index]; // Selects localized loop dataset record element instance contexts safely
-                      return Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 6), // Margin framing capsule buffer bounds
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Padding inside history capsules
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15), // Glass capsule visualization effect color blend
-                          borderRadius: BorderRadius.circular(14), // Uniform item container curve parameters
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center, // Vertically centers text labels within layout tracking blocks
-                          children: [
-                            Text(
-                              "Guess ${record.attemptNumber}",
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12), // Attempt position string index label
-                            ),
-                            Text(
-                              "${record.guessValue} ${record.icon}",
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16), // Guess readout variable data format
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                const SizedBox(height: 15),
+                Text(
+                  _hintMessage,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: orangeColor, fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                
+                if (_phase == "p2Guessing" || _phase == "p1Guessing")
+                  Text(
+                    'Attempts: $_attempts',
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 16),
                   ),
-                ),
-              const SizedBox(height: 15), // Layout spacer
+                const SizedBox(height: 25),
 
-              // --- DYNAMIC ENTRY TEXTFIELD ELEMENT WRAPPER ---
-              if (!isGameOver)
+                // --- LIVE ACTIVE ROUND HISTORY (Shown mid-game) ---
+                if (!isMatchOver && currentHistory.isNotEmpty) ...[
+                  SizedBox(
+                    height: 65,
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      itemCount: currentHistory.length,
+                      itemBuilder: (context, index) {
+                        final record = currentHistory[index];
+                        return Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Guess ${record.attemptNumber}",
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                              ),
+                              Text(
+                                "${record.guessValue} ${record.icon}",
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                ],
+
+                // --- END OF MATCH SCOREBOARD: REVEALS DUAL HISTORIES WRAPPER ---
+                if (isMatchOver) ...[
+                  _buildHistoryRow("Player 1's Guesses (Score: $_player1FinalScore)", _player1GuessHistory),
+                  const SizedBox(height: 20),
+                  _buildHistoryRow("Player 2's Guesses (Score: $_player2FinalScore)", _player2GuessHistory),
+                  const SizedBox(height: 30),
+                ],
+
+                // --- INPUT FIELD: HIDDEN IF A PHASE IS COMPLETE ---
+                if (!isLeg1Over && !isMatchOver)
+                  SizedBox(
+                    width: 150,
+                    child: TextField(
+                      controller: _versusController,
+                      focusNode: _versusFocusNode,
+                      keyboardType: TextInputType.number,
+                      obscureText: isSettingPhase,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: orangeColor, fontSize: 32, fontWeight: FontWeight.bold),
+                      onSubmitted: (_) => _handleSubmit(),
+                      decoration: InputDecoration(
+                        enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: orangeColor, width: 2)),
+                        focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: orangeColor, width: 3)),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 40),
+
+                // --- MAIN CALL TO ACTION DYNAMIC BUTTON ---
                 SizedBox(
-                  width: 150, // Fixed physical container item rendering size specification
-                  child: TextField(
-                    controller: _versusController, // Binds core form data capture handler hook
-                    focusNode: _versusFocusNode, // Connects hardware keyboard targeting system
-                    keyboardType: TextInputType.number, // Configures default keypad panel to target numbers exclusively
-                    obscureText: _phase == "setting", // Hides entry visibility into dots during P1 phase to avoid screen peeping
-                    textAlign: TextAlign.center, // Centers active input element typography horizontally inside the field
-                    style: TextStyle(color: orangeColor, fontSize: 32, fontWeight: FontWeight.bold), // High visibility value display text styles
-                    onSubmitted: (_) => _handleSubmit(), // Routes return/enter keystrokes to evaluate logic loop pipeline natively
-                    decoration: InputDecoration(
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: orangeColor, width: 2)), // Unselected bar rule
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: orangeColor, width: 3)), // Active selector bar rule
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: isMatchOver 
+                        ? _resetEntireMatch 
+                        : (isLeg1Over ? _advanceToNextLeg : _handleSubmit),
+                    child: Text(
+                      isMatchOver 
+                          ? 'PLAY NEW MATCH' 
+                          : (isLeg1Over 
+                              ? 'NEXT PLAYER\'S TURN' 
+                              : (isSettingPhase ? 'LOCK IN NUMBER' : 'SUBMIT GUESS')),
                     ),
                   ),
                 ),
-              const SizedBox(height: 40), // Separation block height boundary spacing gap
 
-              // --- PRIMARY CALL TO ACTION ELEVATED INTERACTION ELEMENT ---
-              SizedBox(
-                width: double.infinity, // Automatically forces item limits outward to fit layout edge lines
-                height: 60, // Universal interaction target height blueprint specifications metric
-                child: ElevatedButton(
-                  onPressed: isGameOver ? _resetVersusGame : _handleSubmit, // State conditional control execution function selector
-                  child: Text(
-                    isGameOver ? 'PLAY AGAIN' : (_phase == "setting" ? 'LOCK IN NUMBER' : 'SUBMIT GUESS'), // Multi-phase action button labels
+                // --- ESCAPE ROUTE TO MAIN MENU ---
+                if (isMatchOver) ...[
+                  const SizedBox(height: 15),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('BACK TO MAIN MENU'),
+                    ),
                   ),
-                ),
-              ),
-
-              // --- BACK BUTTON INJECTION CONTROLS ---
-              if (isGameOver) ...[
-                const SizedBox(height: 15), // Layout element buffer gap
-                SizedBox(
-                  width: double.infinity, // Spans full horizontal boundary dimensions widthwise
-                  height: 60, // Standard template sizing framework consistency lock-in
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context), // Drops route tier safely back down to parent Main Menu target view
-                    child: const Text('BACK TO MAIN MENU'), // Redirection action button typography tag
-                  ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
