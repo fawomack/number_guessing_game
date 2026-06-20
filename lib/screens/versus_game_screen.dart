@@ -118,7 +118,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
         }
         
         // Fixes the mobile focus kick-out bug by waiting out the native OS layout cycle
-        Future.delayed(const Duration(milliseconds: 20), () {
+        Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted && _phase != "matchOver") {
             _versusFocusNode.requestFocus();
           }

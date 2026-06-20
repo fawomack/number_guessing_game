@@ -94,7 +94,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
         }
         
         // A tiny 20ms delay lets Android finish its native layout shift before we demand focus back
-        Future.delayed(const Duration(milliseconds: 20), () {
+        Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted && !_isGameOver) {
             _guessFocusNode.requestFocus(); // Overrides native mobile layout layout transitions to lock keyboard focus
           }
