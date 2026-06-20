@@ -12,8 +12,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Guessing Game',
       theme: ThemeData(
-        // FIXED: Corrected the hex format here
-        scaffoldBackgroundColor: const Color(0xFF0B192C), 
+        scaffoldBackgroundColor: const Color(0xFF003D82), 
       ),
       home: const MainMenuScreen(),
     );
@@ -37,10 +36,10 @@ class MainMenuScreen extends StatelessWidget {
                 'NUMBERS\nGAME',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Color(0xFFFF6B35), 
+                  color: Color(0xFFFF8C00), 
                   fontSize: 48,
-                  fontWeight: FontWeight.w900, // FIXED: Changed .black to .w900
-                  letterSpacing: 2,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.5,
                 ),
               ),
               const SizedBox(height: 10),
@@ -56,19 +55,17 @@ class MainMenuScreen extends StatelessWidget {
 
               // Solo Mode Button
               SizedBox(
-                width: double.infinity, // Makes button stretch to fill width
+                width: double.infinity, 
                 height: 60,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF6B35), // Orange Button
+                    backgroundColor: const Color(0xFFFF8C00), // Orange Background
                     foregroundColor: Colors.white, // White Text
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    // We will wire this up later!
-                  },
+                  onPressed: () {},
                   child: const Text(
                     'PLAY SOLO',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -77,24 +74,22 @@ class MainMenuScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // 1v1 Mode Button
+              // Versus Mode Button - Matches Solo perfectly
               SizedBox(
                 width: double.infinity,
                 height: 60,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Color(0xFFFF6B35), width: 2), // Orange Border
-                    foregroundColor: const Color(0xFFFF6B35), // Orange Text
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF8C00), // Orange Background
+                    foregroundColor: Colors.white, // White Text
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: () {
-                    // We will wire this up later!
-                  },
+                  onPressed: () {},
                   child: const Text(
-                    '1v1 PASS & PLAY',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    'VERSUS MODE', 
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold), 
                   ),
                 ),
               ),
