@@ -221,6 +221,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
     List<GuessRecord> currentHistory = _getActiveHistory();
 
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Prevents Android window frame restructuring from dropping active keyboard streams
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

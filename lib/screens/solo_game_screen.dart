@@ -109,6 +109,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
     final orangeColor = Theme.of(context).colorScheme.secondary; // Dynamically pulls master orange accent value
 
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Forces layout boundaries to remain static so button clicks don't break keyboard focus
       // --- HEADER APP BAR WRAPPER ---
       appBar: AppBar(
         backgroundColor: Colors.transparent, // Clears default bar coloration background layer
