@@ -137,7 +137,7 @@ class MainMenuScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white, // Forces the core logo text string layer to write in ultra clean solid white characters
                     fontSize: 36, // Locks the primary brand identifier text sizing profile directly to thirty-six logical points
-                    fontWeight: FontWeight.black, // Sets the typeface weight configuration to an ultra thick max density black value
+                    fontWeight: FontWeight.w900, // Sets the typeface weight configuration to an ultra thick max density black value
                     letterSpacing: 4.0, // Stretches out the horizontal tracking width across character elements by four pixels for tech brand feel
                   ),
                 ),
