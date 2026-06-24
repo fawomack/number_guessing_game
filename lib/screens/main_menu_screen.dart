@@ -21,21 +21,21 @@ class MainMenuScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24), // Sets an organic twenty-four pixel curve profile rule on layout edges
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.07), // Seeds the primary layer position with a seven percent alpha transparent white
-            Colors.white.withValues(alpha: 0.02), // Caps the secondary layer position with a two percent alpha transparent white
+            Colors.white.withValues(alpha: 0.12), // Increases glass backing to twelve percent alpha to pop against the brighter background
+            Colors.white.withValues(alpha: 0.04), // Caps the secondary layer position with a four percent alpha transparent white
           ],
           begin: Alignment.topLeft, // Locks the sweeping linear transformation origin path to the top left frame margin
           end: Alignment.bottomRight, // Projects the sweeping linear transformation destination path to the bottom right frame margin
         ),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12), // Paints a crisp twelve percent alpha transparent white glass edge stroke
+          color: Colors.white.withValues(alpha: 0.20), // Sharpens the glass edge border line to twenty percent alpha opacity
           width: 1, // Sets the structural boundary line gauge thickness parameter strictly to one pixel
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25), // Assigns a muted twenty-five percent alpha transparent black shadow color map
-            blurRadius: 15, // Blurs the cast shadow edge boundaries across a fifteen pixel layout space
-            offset: const Offset(0, 8), // Drops layout elements forward across the Z-axis by offsetting the shadow down eight pixels
+            color: Colors.black.withValues(alpha: 0.18), // Softens the drop shadow density slightly to blend with the richer blue values
+            blurRadius: 18, // Blurs the cast shadow edge boundaries across an eighteen pixel layout space
+            offset: const Offset(0, 6), // Drops layout elements forward across the Z-axis by offsetting the shadow down six pixels
           ),
         ],
       ),
@@ -45,8 +45,8 @@ class MainMenuScreen extends StatelessWidget {
         child: InkWell(
           onTap: onTap, // Binds the outer functional navigation argument loop directly to active touch taps
           borderRadius: BorderRadius.circular(24), // Clips interactive touch splash wave vectors inside the twenty-four pixel curves
-          splashColor: accentColor.withValues(alpha: 0.15), // Fires a vibrant fifteen percent alpha accent colored ink ripple on tap events
-          highlightColor: accentColor.withValues(alpha: 0.05), // Paints a soft five percent alpha accent colored sheen when held down steady
+          splashColor: accentColor.withValues(alpha: 0.25), // Fires a vibrant twenty-five percent alpha accent colored ink ripple on tap events
+          highlightColor: accentColor.withValues(alpha: 0.08), // Paints a soft eight percent alpha accent colored sheen when held down steady
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20), // Sets custom vertical twenty and horizontal twenty-four cushioning boundaries
             child: Row(
@@ -55,7 +55,7 @@ class MainMenuScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12), // Pads out the internal icon element edges evenly by twelve pixels layout-wide
                   decoration: BoxDecoration(
-                    color: accentColor.withValues(alpha: 0.12), // Paints the backing plate with a twelve percent alpha accent translucent ink tint
+                    color: accentColor.withValues(alpha: 0.18), // Increases icon backing plate saturation to an eighteen percent alpha tint
                     borderRadius: BorderRadius.circular(16), // Curves the internal icon backing plate corners cleanly at sixteen pixels
                   ),
                   child: Icon(icon, color: accentColor, size: 28), // Instantiates the semantic icon vector graphic bound to the accent color scheme
@@ -77,7 +77,7 @@ class MainMenuScreen extends StatelessWidget {
                 // --- TRAILING CHEVRON GLYPH ELEMENT ---
                 Icon(
                   Icons.arrow_forward_ios, // Selects the standard iOS style forward pointing arrow indicator vector asset
-                  color: Colors.white.withValues(alpha: 0.25), // Mutes the indicator vector appearance down to a subtle twenty-five percent transparency
+                  color: Colors.white.withValues(alpha: 0.45), // Brightens the chevron glyph pointer to forty-five percent opacity for crisp visibility
                   size: 16, // Lowers the structural icon layout width dimensions down to sixteen logical points
                 ),
               ],
@@ -98,11 +98,11 @@ class MainMenuScreen extends StatelessWidget {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF0A192F), // Assigns an ultra deep, premium royal gator blue hex value to the origin anchor
-              Color(0xFF050C16), // Assigns a dark, charcoal-tinted athletic navy hex value to the destination anchor
+              Color(0xFF0021A5), // Swaps out the dark midnight navy for a vibrant, saturated official Gator Royal Blue anchor
+              Color(0xFF0A1E3F), // Transitions into a clean, rich athletic deep navy base rather than flat black
             ],
-            begin: Alignment.topLeft, // Locks the immersive linear color shifting base to the top left screen corner boundary
-            end: Alignment.bottomRight, // Projects the immersive linear color shifting line down to the bottom right screen corner boundary
+            begin: Alignment.topCenter, // Shifts the gradient path to sweep from straight top down for maximum uniform lighting
+            end: Alignment.bottomCenter, // Drops the destination transformation terminal point directly to the lower boundary edge
           ),
         ),
         child: SafeArea(
@@ -117,13 +117,13 @@ class MainMenuScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24), // Sets an internal twenty-four pixel padding frame entirely around the center icon asset
                   decoration: BoxDecoration(
-                    color: orangeColor.withValues(alpha: 0.08), // Sets a soft eight percent alpha transparent orange interior fill coloration
+                    color: orangeColor.withValues(alpha: 0.15), // Deepens the interior icon fill blend ratio to fifteen percent alpha
                     shape: BoxShape.circle, // Configures the backing mask architecture shape profile to a clean perfect geometric circle
                     boxShadow: [
                       BoxShadow(
-                        color: orangeColor.withValues(alpha: 0.12), // Sets the bloom glow background aura matrix to twelve percent alpha orange
-                        blurRadius: 40, // Spreads the soft atmospheric bloom out across a massive forty pixel blurring field radius
-                        spreadRadius: 4, // Expands the core neon cast density outwards by four pixels from structural center boundaries
+                        color: orangeColor.withValues(alpha: 0.25), // Amplifies the neon backing aura density up to twenty-five percent orange
+                        blurRadius: 35, // Tightens the blur range slightly to give a punchier, brighter core lighting bloom effect
+                        spreadRadius: 6, // Projects the active orange aura outwards by six full logical units from the boundary lines
                       ),
                     ],
                   ),
@@ -144,9 +144,9 @@ class MainMenuScreen extends StatelessWidget {
                 Text(
                   'THE ULTIMATE CHASE', // Injects the gaming subtitle branding phrase string literal into the drawing flow
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.35), // Dims the subtitle text block down to an elegant thirty-five percent transparent white ink
+                    color: Colors.white.withValues(alpha: 0.55), // Elevates the tagline opacity to fifty-five percent white to stand out proudly against the blue
                     fontSize: 12, // Restricts the gaming tagline layout width print footprint strictly to twelve logical points
-                    fontWeight: FontWeight.w600, // Hardcodes the tagline letter forms to a solid professional semi-bold weight configuration
+                    fontWeight: FontWeight.w700, // Thickens the typeface characters to a solid w700 bold configuration weight profile
                     letterSpacing: 2.0, // Expands horizontal character tracking layout separations by an explicit two logical points widthwise
                   ),
                 ),
@@ -169,7 +169,7 @@ class MainMenuScreen extends StatelessWidget {
                   context: context, // Passes active runtime app context tracks down into the selection module block loop
                   title: 'VERSUS ARENA', // Passes the competitive arena mode text string to write inside the glass capsule layout
                   icon: Icons.people_alt_rounded, // Assigns a dual user competitive group community silhouette vector graphic to the block
-                  accentColor: const Color(0xFF2A75FF), // Injects a premium neon-boosted Gator Royal Blue accent color code for versus mode differentiation
+                  accentColor: const Color(0xFF4FA3FF), // Upgrades the versus accent color path to a blazing neon electric sky blue layout tone
                   onTap: () => Navigator.push(
                     context, // Passes target application view architecture context trees downwards
                     MaterialPageRoute(builder: (context) => const VersusGameScreen()), // Compiles a route tracking link building a fresh Versus Game Screen view
@@ -182,7 +182,7 @@ class MainMenuScreen extends StatelessWidget {
                 Text(
                   'v1.0.0 • READY TO PLAY', // Injects the production build specification stamp string directly into layout positions
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.15), // Fades the production build stamp to a minimal fifteen percent transparent ghost text look
+                    color: Colors.white.withValues(alpha: 0.35), // Raises the footer visibility layout footprint smoothly to thirty-five percent alpha tint
                     fontSize: 11, // Locks the technical attribution footprint small down to eleven logical scaling points size
                     letterSpacing: 1.2, // Separates technical text elements horizontally across tracking lines by one point two pixels
                   ),
