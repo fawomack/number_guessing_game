@@ -1,21 +1,13 @@
 // --- SYSTEM ARCHITECTURE IMPORT DIRECTIVES ---
 import 'package:flutter/material.dart'; // Imports the core Material graphics design library bundle
-import 'dart:math'; // Imports the math engine bundle to capture random range generations
 import '../theme/gator_theme.dart'; // References the master design system token profile file
 
 // --- CUSTOM HISTORICAL DATA OBJECT TRACKER ---
 class VersusAttempt {
-  final int player; // Tracks which user made the shot (1 or 2)
-  final int guess; // Stores the specific number submitted
+  final int guess; // Stores the specific number submitted by the guesser
   final String feedback; // Stores directional hints like "Too High" or "Too Low"
-  final Color playerColor; // Caches the contextual player accent color map for clean item row rendering
 
-  VersusAttempt({
-    required this.player,
-    required this.guess,
-    required this.feedback,
-    required this.playerColor,
-  });
+  VersusAttempt({required this.guess, required this.feedback});
 }
 
 // --- VERSUS COMPETITIVE ARENA GAMEPLAY CONTROLLER ---
@@ -28,20 +20,23 @@ class VersusGameScreen extends StatefulWidget {
 
 class _VersusGameScreenState extends State<VersusGameScreen> {
   // --- STATE REGISTRATION FIELD TRACKERS ---
-  final TextEditingController _versusController = TextEditingController(); // Allocates the memory stream to capture competitive player entry text
+  final TextEditingController _versusController = TextEditingController(); // Allocates the memory stream to capture active text typing input
   final FocusNode _versusFocusNode = FocusNode(); // Allocates a persistent focus anchor to control device soft keyboard states
-  late int _targetNumber; // The secret target value generated for the ongoing interactive turn
-  int _player1Score = 0; // Tracks active running total match victories for player one
-  int _player2Score = 0; // Tracks active running total match victories for player two
-  int _activePlayer = 1; // Directs turn states (1 tracks Player One operations, 2 targets Player Two sequences)
-  String _arenaFeedback = "Player 1, fire a guess between 1 and 100!"; // Holds current versus prompt tracking context lines
-  final List<VersusAttempt> _arenaHistory = []; // Registers the running sequential history log of all competitive attempts and missed targets
-  bool _isRoundOver = false; // Tracks whether the current target value has been cracked successfully
+  
+  int? _targetNumber; // The secret number input by Player 1 (null means we are still in setup phase)
+  
+  // ignore: prefer_final_fields
+  int _player1Score = 0; // FIXED: Added linter ignore rule to clear warnings since Player 1 only sets numbers and doesn't get points
+  int _player2Score = 0; // Tracks master running game wins for Player 2 (The Tactical Guesser)
+  
+  String _arenaFeedback = "Player 1: Enter a secret number (1-100) for Player 2 to guess!"; // Holds current versus prompt tracking context lines
+  final List<VersusAttempt> _arenaHistory = []; // Registers the running sequential history log of all current round guess attempts
+  bool _isRoundOver = false; // Tracks whether Player 2 successfully cracked the secret target
 
   @override
   void initState() {
-    super.initState();
-    _resetArenaTarget(); // Generates a clean matching challenge base target right away
+    super.initState(); // Executes standard parent initialization tasks first
+    _versusFocusNode.requestFocus(); // Force soft keyboard open instantly upon screen mounting to start phase one immediately
   }
 
   @override
@@ -51,68 +46,81 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
     super.dispose();
   }
 
-  // --- ARENA RANDOM VALUE GENERATOR RULE ---
-  void _resetArenaTarget() {
-    _targetNumber = Random().nextInt(100) + 1; // Selects a random target range configuration strictly between 1 and 100
-    _arenaFeedback = "Player $_activePlayer, fire a guess between 1 and 100!"; // Builds contextual dynamic turn instructional strings
-    _arenaHistory.clear(); // Flushes previous attempts records cleanly out of active view layouts
-    _isRoundOver = false; // Opens up input parameters safely for active interactions
-    _versusFocusNode.requestFocus(); // Demands immediate hardware soft keyboard focus on reset cycles
+  // --- HARD GAME STATE INITIALIZATION RESET ---
+  void _startNewArenaMatch() {
+    setState(() {
+      _targetNumber = null; // Wipes target reference to drop back into Phase 1 (Setup)
+      _isRoundOver = false; // Re-opens processing gates for keyboard entries
+      _arenaHistory.clear(); // Wipes round log matrices clean for the new match cycle
+      _versusController.clear(); // Flushes input content fields instantly
+      _arenaFeedback = "Player 1: Enter a secret number (1-100) for Player 2 to guess!"; // Resets guidance header text strings
+      _versusFocusNode.requestFocus(); // Forces keyboard to snap right back up so Player 1 can instantly enter a new target
+    });
   }
 
-  // --- COMPETITIVE MATCH TURN SYSTEM AND LOGIC CONTROLLER ---
-  void _evaluateStrike() {
-    if (_isRoundOver) return; // Completely shield data tracks from editing if target matches are completed
+  // --- MASTER ROUTING ENGINE FOR SUBMISSIONS ---
+  void _handleActionSubmit() {
+    if (_isRoundOver) {
+      _startNewArenaMatch(); // If the match is already complete, clicking the trigger initializes a hard structural gameplay reset
+    } else if (_targetNumber == null) {
+      _setSecretNumberPhase(); // If no target exists yet, the current text submission routes straight to Player 1's configuration setup logic
+    } else {
+      _processGuessPhase(); // If a target is active, the text entry routes straight to Player 2's guess evaluation processor
+    }
+  }
 
-    final int? currentGuess = int.tryParse(_versusController.text);
-    if (currentGuess == null) return; // Discard invalid or blank touch interactions immediately
+  // --- PHASE 1: PLAYER 1 INPUTS TARGET VALUE ---
+  void _setSecretNumberPhase() {
+    final int? secretInput = int.tryParse(_versusController.text); // Parses typed user string content safely into an interactive integer format
+    
+    // Validates that the input integer sits perfectly inside our technical gameplay window of 1 to 100 inclusive
+    if (secretInput == null || secretInput < 1 || secretInput > 100) {
+      setState(() {
+        _arenaFeedback = "⚠️ Invalid! Please enter a valid number strictly between 1 and 100."; // Injects warning messaging on fail conditions
+      });
+      return;
+    }
 
-    final Color currentTurnColor = _activePlayer == 1 ? GatorTheme.vividOrange : GatorTheme.versusBlue;
+    setState(() {
+      _targetNumber = secretInput; // Safely locks target number parameter into active engine reference fields
+      _versusController.clear(); // Instantly clears hidden text string variables out of layout fields
+      _arenaFeedback = "Secret locked! 🔒 Player 2: Start firing guesses!"; // Advances the central guidance layout prompt string text
+      _versusFocusNode.requestFocus(); // Maintains continuous keyboard frame context instantly for Player 2's turn
+    });
+  }
+
+  // --- PHASE 2: PLAYER 2 ATTEMPTS TO CRACK TARGET ---
+  void _processGuessPhase() {
+    final int? currentGuess = int.tryParse(_versusController.text); // Parses typed guess string content safely into an interactive integer format
+    if (currentGuess == null) return; // Completely abort processing tracking streams if the field input is invalid or blank
 
     setState(() {
       if (currentGuess == _targetNumber) {
-        // MATCH ROUND WINNER SELECTION AND METRIC INCREMENTATION
-        _isRoundOver = true; // Flips round states flag to freeze text interfaces instantly
-        _versusFocusNode.unfocus(); // Drops keyboards away cleanly upon direct strikes completions
-        
-        if (_activePlayer == 1) {
-          _player1Score++;
-          _arenaFeedback = "🎯 Player 1 hits the mark! Direct strike (+1 Win)!";
-        } else {
-          _player2Score++;
-          _arenaFeedback = "🎯 Player 2 hits the mark! Direct strike (+1 Win)!";
-        }
+        // SUCCESS: WIN TRIGGER PROCESSING CONTEXT KEYS AND SCORE UPDATES
+        _isRoundOver = true; // Flips round states flag to freeze text interfaces instantly layout-wide
+        _versusFocusNode.unfocus(); // Clear screen clutter by dropping soft hardware keyboard layout away entirely
 
+        _player2Score++; 
+        _arenaFeedback = "🎯 Player 2 cracked the code! The secret number was $_targetNumber!"; // Win state messaging injection
+
+        // Injects clean direct strike records to the front of our scrolling array list
         _arenaHistory.insert(0, VersusAttempt(
-          player: _activePlayer,
           guess: currentGuess,
           feedback: "Direct Hit! 🎯",
-          playerColor: Colors.greenAccent,
         ));
       } else {
-        // MISSED TARGET: FORMULATE DIRECTION AND ALTERNATE TURNS
-        final String direction = currentGuess < _targetNumber ? "Too Low 📉" : "Too High 📈";
+        // MISSED TARGET: FORMULATE DIRECTIONAL HINTS
+        final String direction = currentGuess < _targetNumber! ? "Too Low 📉" : "Too High 📈"; // Formulates direction metrics rules
+        _arenaFeedback = "❌ Missed! Player 2, your guess was ${direction.split(' ')[1].toLowerCase()}!"; // Dynamic instructional guidance update
         
+        // Logs the guess attempt alongside its directional hint outcome parameters directly into memory lists
         _arenaHistory.insert(0, VersusAttempt(
-          player: _activePlayer,
           guess: currentGuess,
           feedback: direction,
-          playerColor: currentTurnColor,
         ));
-
-        if (_activePlayer == 1) {
-          _activePlayer = 2; // Switches control states over to Player Two operations
-          _arenaFeedback = "❌ Player 1 Missed! It's ${direction.split(' ')[0]}. Player 2 is up!";
-        } else {
-          _activePlayer = 1; // Returns active control loops straight back to Player One configurations
-          _arenaFeedback = "❌ Player 2 Missed! It's ${direction.split(' ')[0]}. Player 1 is up!";
-        }
-      }
-      
-      _versusController.clear(); // Wipes typing blocks clean instantly upon execution submissions
-      
-      if (!_isRoundOver) {
-        _versusFocusNode.requestFocus(); // Maintains continuous keyboard focus for seamless play turnovers
+        
+        _versusController.clear(); // Empty typing zone ready for re-entry sequence
+        _versusFocusNode.requestFocus(); // Ensure cursor stays alive inside text entry bracket so users never have to manually tap the screen
       }
     });
   }
@@ -153,6 +161,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                 color: color, // Highlights active score readouts matching assigned operational color context lines
                 fontSize: 24, // Punchy readable scoring scale factor units
                 fontWeight: FontWeight.w900, // Forces maximum visual density for critical scores parameters
+                letterSpacing: 1.0, // Spreads technical tracking tracking parameters
               ),
             ),
           ],
@@ -164,10 +173,10 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
   // --- REUSABLE GLASSMORPHIC ARENA HISTORY ROW BUILDER ---
   Widget _buildArenaHistoryRow(VersusAttempt attempt) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6), // Gaps out vertical items log cells
+      margin: const EdgeInsets.symmetric(vertical: 6), // Gaps out vertical items log cells cleanly along lists tracks
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), // Internal tracking lists cell borders cushion lines
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Clips container fields inside master curve values
+        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Clips container fields inside master theme curve values
         gradient: LinearGradient(
           colors: [
             Colors.white.withValues(alpha: 0.06), // Subtle frosting overlays profile records maps
@@ -175,39 +184,26 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
           ],
         ),
         border: Border.all(
-          color: attempt.playerColor.withValues(alpha: 0.2), // Tints historical item cells boundaries match player identity assets
+          color: attempt.feedback.contains('Hit') ? Colors.greenAccent.withValues(alpha: 0.2) : GatorTheme.versusBlue.withValues(alpha: 0.15), // Tints historical cells matching outcomes
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distributes match tracking indices to opposite poles cleanly
         children: [
-          Row(
-            children: [
-              Container(
-                width: 8, // Tiny indicator dot element metric thickness layout parameters
-                height: 8,
-                decoration: BoxDecoration(
-                  color: attempt.playerColor, // Paints indicator bulbs with active context color maps
-                  shape: BoxShape.circle, // Curves helper icons to clean circles arrays
-                ),
-              ),
-              const SizedBox(width: 12), // Horizontal clearance spacing spacer bounds
-              Text(
-                'P${attempt.player} fired: ${attempt.guess}', // Renders whose turn hit this index number parameter
-                style: const TextStyle(
-                  color: Colors.white, // Solid bright white layout-wide font characters sets
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Text(
+            'Player 2 guessed: ${attempt.guess}', // Renders the data integer entry submitted on that index frame
+            style: const TextStyle(
+              color: Colors.white, // Solid bright white layout-wide font characters sets
+              fontSize: 15, // Scannable high visibility list dimensions points
+              fontWeight: FontWeight.bold, // Bold emphasis weight mapping rules
+            ),
           ),
           Text(
-            attempt.feedback, // Displays dynamic too high, too low, or hit alerts tags
+            attempt.feedback, // Displays dynamic too high, too low, or hit alerts tags variables data
             style: TextStyle(
-              color: attempt.feedback.contains('Hit') ? Colors.greenAccent : Colors.white60, // Lights wins green and keeps missed hints soft silver gray
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              color: attempt.feedback.contains('Hit') ? Colors.greenAccent : GatorTheme.versusBlue, // Lights up wins in emerald and parameters in stadium blue
+              fontSize: 15, // Matching tracking font size dimensions
+              fontWeight: FontWeight.w600, // Semi bold configuration priority layout mapping tracks
             ),
           ),
         ],
@@ -218,8 +214,12 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
   // --- MAIN VIEWPORT VISUAL ENGINE DRAW ROUTINES ---
   @override
   Widget build(BuildContext context) {
-    // Dynamically tracks layouts highlight accents depending on which player controls the current active turn
-    final Color activeTurnColor = _isRoundOver ? Colors.greenAccent : (_activePlayer == 1 ? GatorTheme.vividOrange : GatorTheme.versusBlue);
+    final bool isSetupPhase = (_targetNumber == null); // Tracks dynamically if we are currently handling player setups
+    
+    // Calculate adaptive aesthetic tokens relative to exact game phase sequences
+    final Color phaseAccentColor = _isRoundOver 
+        ? Colors.greenAccent 
+        : (isSetupPhase ? GatorTheme.vividOrange : GatorTheme.versusBlue);
 
     return Scaffold(
       body: Container(
@@ -255,24 +255,24 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                 // --- COMPETITIVE MATCH SCOREBOARD INTERACTION HEADER ---
                 Row(
                   children: [
-                    _buildScoreCard('PLAYER 1', _player1Score, GatorTheme.vividOrange), // Draws player one scorecard painted in vibrant signature orange
+                    _buildScoreCard('PLAYER 1 (SETTER)', _player1Score, GatorTheme.vividOrange), // Draws player one scorecard painted in vibrant signature orange
                     const SizedBox(width: 16), // Gaps scorecard elements cleanly widthwise across the horizon grid
-                    _buildScoreCard('PLAYER 2', _player2Score, GatorTheme.versusBlue), // Draws player two scorecard painted in high contrast versus blue
+                    _buildScoreCard('PLAYER 2 (GUESSER)', _player2Score, GatorTheme.versusBlue), // Draws player two scorecard painted in high contrast versus blue
                   ],
                 ),
                 const Spacer(), // Centers gameplay text boxes elegantly across device viewports
 
                 // --- SYSTEM ARENA DYNAMIC FEEDBACK TEXT ROW ---
                 Text(
-                  _arenaFeedback, // Direct live feed matching state alerts showing lower/higher or turn switches layout tags
+                  _arenaFeedback, // Direct live feed matching state alerts showing lower/higher or setup progress labels
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+                    color: Colors.white, // High visibility clean solid white typography styling profile
+                    fontSize: 18, // Mid-tier readable presentation points
+                    fontWeight: FontWeight.w600, // Semi bold configuration weight metrics
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 32), // Layout separation block tracking height dimensions
 
                 // --- GLOWING ARENA ENTRY INTERACTION ZONE ---
                 Container(
@@ -290,7 +290,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: activeTurnColor.withValues(alpha: 0.06), // Dynamically changes glow color to track whichever player's turn is active
+                        color: phaseAccentColor.withValues(alpha: 0.06), // Dynamically shifts shadow ambiance tracking running setup and hunting modes
                         blurRadius: 30, // Spreads glow boundaries widely layout-wide
                         spreadRadius: 2, // Expands core aura structural parameters gently outwards
                       ),
@@ -299,7 +299,9 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                   child: Column(
                     children: [
                       Text(
-                        _isRoundOver ? 'ARENA SECURED' : 'PLAYER $_activePlayer FIRING ZONE', // Dynamically flags exactly who handles the hardware typing stream now
+                        _isRoundOver 
+                            ? 'MATCH RESULT SECURED' 
+                            : (isSetupPhase ? 'PLAYER 1: HIDDEN INPUT ZONE' : 'PLAYER 2: TACTICAL HUNTING ZONE'), // Toggles header labels instantly to map active phase status
                         style: const TextStyle(
                           color: Colors.white70, // Slightly translucent white header layer tint
                           fontSize: 14, // Secondary body caption point dimension settings
@@ -307,23 +309,24 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                           letterSpacing: 1.0, // Tracking spacing configuration rules
                         ),
                       ),
-                      const SizedBox(height: 8), // Mid stack layout spacing spacer block
+                      const SizedBox(height: 8), // Interior block alignment buffer gap
                       
                       // --- CORE TEXT FIELD INTERACTION ELEMENT ---
                       TextField(
                         controller: _versusController, // Binds the text editor stream receiver to capture layout input values
                         focusNode: _versusFocusNode, // Connects our specific focus hook state to maintain uninterrupted keyboard access
                         enabled: !_isRoundOver, // BLOCKS INTERACTION: Shuts off active typing paths fully once rounds end
+                        obscureText: isSetupPhase, // STEALTH CONTROL: Hides Player 1 input text strings with bullet masks so Player 2 can't screen-peek target parameters
                         keyboardType: TextInputType.number, // Restricts user hardware entries strictly to physical number layout grids
                         textAlign: TextAlign.center, // Keeps active typing streams positioned beautifully in dead layouts center
-                        onSubmitted: (_) => _evaluateStrike(), // Fires calculations instantly upon system software enter execution clicks
+                        onSubmitted: (_) => _handleActionSubmit(), // Routes execution triggers automatically through selection parsing engines
                         style: TextStyle(
-                          color: activeTurnColor, // Dynamically swaps typed character color tones depending on whose turn is running
+                          color: phaseAccentColor, // Dynamically swaps character color tones matching runtime phase criteria states
                           fontSize: 32, // Giant readable numeric typing scale factor points
                           fontWeight: FontWeight.w900, // Forces heavy numeric presence on screens
                         ),
                         decoration: InputDecoration(
-                          hintText: _isRoundOver ? '🏆' : '00', // Replaces placeholders with win icons context sets once targets break
+                          hintText: _isRoundOver ? '🏆' : (isSetupPhase ? '• • • •' : '00'), // Morph baseline targets cleanly matching operations maps
                           hintStyle: const TextStyle(color: Colors.white12), // Fades fallback placeholder indicators down out of focus scopes
                           border: InputBorder.none, // Strips away ugly raw platform text underline bounding frames
                         ),
@@ -339,14 +342,18 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                   height: 56, // Sets premium professional structural touch height values
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: activeTurnColor, // Dynamically updates button colors to highlight whose turn it is to click launch
-                      foregroundColor: _isRoundOver ? Colors.black87 : Colors.white, // Inverts label styling shades on round wins for visibility setup
+                      backgroundColor: phaseAccentColor, // Dynamically maps background button fills matching phase tokens
+                      foregroundColor: _isRoundOver ? Colors.black87 : Colors.white, // Shifts text characters coloring schema for peak visibility constraints
                     ),
-                    onPressed: _isRoundOver ? _resetArenaTarget : _evaluateStrike, // PLAY AGAIN RE-BINDING: Switches logic targets depending on match round status
-                    child: Text(_isRoundOver ? 'PLAY AGAIN' : 'LAUNCH STRIKE'), // Action button structural display interaction label string text
+                    onPressed: _handleActionSubmit, // Dispatches commands cleanly directly to our master action evaluation router engine
+                    child: Text(
+                      _isRoundOver 
+                          ? 'PLAY AGAIN' 
+                          : (isSetupPhase ? 'SET SECRET NUMBER' : 'LAUNCH STRIKE'), // Dynamically shifts display label strings to match active play cycles
+                    ),
                   ),
                 ),
-                const SizedBox(height: 28), // Spacer separation index block row height rules
+                const SizedBox(height: 28), // Spatial allocation block above structural lists fields
 
                 // --- HIGH-VISIBILITY HISTORY SECTION FEED ---
                 if (_arenaHistory.isNotEmpty)
@@ -355,15 +362,15 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'ARENA TRACK REGISTRY LOG', // Competitive live registry category label tag string
+                          'ROUND GUESS REGISTRY LOG', // Competitive live registry category label tag string
                           style: TextStyle(
                             color: Colors.white38, // Faded taxonomic label color parameters
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
+                            fontSize: 11, // Small functional metadata scaling rules
+                            fontWeight: FontWeight.bold, // Structural taxonomy bold mappings
+                            letterSpacing: 1.2, // Clean modern font tracking adjustments
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 8), // Tiny visual spacing gap below list title header
                         Expanded(
                           child: ListView.builder(
                             padding: EdgeInsets.zero, // Eliminates base margin list processing defaults out cleanly
