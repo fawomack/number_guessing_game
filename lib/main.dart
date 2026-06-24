@@ -1,60 +1,48 @@
-// Imports Flutter's UI framework packages (contains all layout blocks like Buttons, Columns, and Colors)
-import 'package:flutter/material.dart';
+// --- SYSTEM ARCHITECTURE IMPORT DIRECTIVES ---
+import 'package:flutter/material.dart'; // Imports Flutter's UI framework packages (contains all layout blocks like Buttons, Columns, and Colors)
+import 'screens/main_menu_screen.dart'; // Imports your custom home screen file so this script can launch it as the starting window
 
-// Imports your custom home screen file so this script can launch it as the starting window
-import 'screens/main_menu_screen.dart';
-
-// The absolute entry point of the application. The computer targets this function first when booting up.
+// --- APPLICATION HARDWARE ENTRY POINT ---
 void main() {
-  // Launches the core Flutter layout engine and mounts your custom master widget (MyApp) onto the screen
-  runApp(const MyApp());
+  runApp(const MyApp()); // Launches the core Flutter layout engine and mounts your custom master widget (MyApp) onto the screen
 }
 
-// MyApp is a StatelessWidget because its core engine settings never dynamically switch values while running
+// --- MASTER ROOT CONFIGURATION LAYER ---
 class MyApp extends StatelessWidget {
-  // Constructor rule that optimizes memory management when rendering this widget tree hierarchy
-  const MyApp({super.key});
+  const MyApp({super.key}); // Constructor rule that optimizes memory management when rendering this widget tree hierarchy
 
-  // The build method serves as the layout designer template that draws everything on the execution thread
-  @override
+  @override // Instructs the compiler to override standard root rendering methods
   Widget build(BuildContext context) {
-    // MaterialApp wraps your app in foundational configurations like navigation routes, titles, and localized fonts
     return MaterialApp(
-      title: 'Guessing Game', // Operating system task label
+      title: 'Guessing Game', // Operating system task label configuration metadata
       debugShowCheckedModeBanner: false, // Hides the bright red "DEBUG" banner from Chrome's top right corner
-      
-      // 🌟 THE GLOBAL MASTER CONFIGURATION
       theme: ThemeData(
-        scaffoldBackgroundColor: const Color(0xFF003D82), // Universal background color (Midnight Blue)
-        
+        brightness: Brightness.dark, // Switches default framework system calculations to support a rich dark mode setup
+        scaffoldBackgroundColor: const Color(0xFF0F1123), // Sets the base background fallback tint to match our cosmic midnight canvas color
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF003D82), // Base anchor color used to generate consistent color accents
-          secondary: const Color(0xFFFF8C00), // Universal secondary accent color (Deep Orange)
+          seedColor: const Color(0xFF0F1123), // Hooks the master seed reference point into our premium midnight color palette
+          brightness: Brightness.dark, // Signals the framework engine to auto-generate dark layout color configurations natively
+          secondary: const Color(0xFFFF8C00), // Binds your signature energetic deep orange color map as the master secondary accent
         ),
-
-        // This instantly formats EVERY primary solid ElevatedButton used anywhere across your application files
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF8C00), // Primary solid button background color
-            foregroundColor: Colors.white, // Text color inside solid buttons
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Bold global typography scaling
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // Button corner roundness radius
+            backgroundColor: const Color(0xFFFF8C00), // Injects your signature vibrant orange accent color directly onto solid button backgrounds
+            foregroundColor: Colors.white, // Paints typography elements inside solid buttons a solid bright white
+            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.8), // Enforces bold global text properties and tight tracking spaces
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Evolves button geometry from a boxy twelve pixel layout curve to a premium pill capsule profile
+            elevation: 4, // Adds subtle depth by casting a soft shadow profile underneath clickable surfaces
           ),
         ),
-
-        // This instantly formats EVERY Outlined border style button used across your application files
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: Colors.white, width: 2), // Outlined frame color and line thickness
-            foregroundColor: Colors.white, // Text color inside hollow buttons
-            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold), // Matches bold primary sizing
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)), // Matches button corner curves
+            side: const BorderSide(color: Colors.white24, width: 1.5), // Softens the harsh white outline down to a subtle twenty-four percent opacity frame line
+            foregroundColor: Colors.white, // Keeps character typography elements tracking across hollow buttons fully solid white
+            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.8), // Pairs font sizes perfectly with the primary actions configuration
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Applies matching premium pill curves across all secondary buttons layout-wide
           ),
         ),
       ),
-      
-      // Directs the app's internal navigation system on which file layout screen component to draw as the home page
-      home: const MainMenuScreen(),
+      home: const MainMenuScreen(), // Directs the app's internal navigation system on which file layout screen component to draw as the home page
     );
   }
 }
