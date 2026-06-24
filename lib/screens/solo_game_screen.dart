@@ -1,125 +1,172 @@
 // --- SYSTEM ARCHITECTURE IMPORT DIRECTIVES ---
 import 'package:flutter/material.dart'; // Imports the core Material graphics design library bundle
-import 'dart:math'; // Imports the math library to generate random secret numbers for gameplay
 import '../theme/gator_theme.dart'; // References the master design system token profile file
 
 // --- CUSTOM HISTORICAL DATA OBJECT TRACKER ---
-class GuessAttempt {
-  final int guess; // Stores the number the user submitted
-  final String feedback; // Stores whether this specific number was too high or too low
+class SoloAttempt {
+  final int guess; // Stores the specific number submitted by the player
+  final String direction; // Stores text mapping: "Too High" or "Too Low"
+  final Color alertColor; // Experimental: Holds the explicit color token for visual feedback formatting
 
-  GuessAttempt({required this.guess, required this.feedback});
+  SoloAttempt({
+    required this.guess,
+    required this.direction,
+    required this.alertColor,
+  });
 }
 
-// --- SOLO CAMPAIGN GAMEPLAY CONTROLLER ---
+// --- SOLO ADAPTIVE TRAINING ARENA SYSTEM CONTROLLER ---
 class SoloGameScreen extends StatefulWidget {
-  const SoloGameScreen({super.key}); // Configures the standard foundational constructor passing structural key trackers
+  const SoloGameScreen({super.key}); // Configures standard foundational class constructor tracking references
 
   @override
-  State<SoloGameScreen> createState() => _SoloGameScreenState(); // Instantiates the dynamic mutable state engine for this screen
+  State<SoloGameScreen> createState() => _SoloGameScreenState(); // Instantiates mutable runtime state loops
 }
 
 class _SoloGameScreenState extends State<SoloGameScreen> {
   // --- STATE REGISTRATION FIELD TRACKERS ---
-  final TextEditingController _guessController = TextEditingController(); // Allocates the memory stream to capture active text typing input
-  final FocusNode _guessFocusNode = FocusNode(); // Allocates a persistent focus anchor to control device soft keyboard states
-  late int _secretNumber; // Stores the target system-generated integer the user has to guess
-  String _feedbackMessage = "I picked a number between 1 and 100. Good luck!"; // Holds the active live guidance text string shown to players
-  final List<GuessAttempt> _history = []; // Registers the running sequential list of detailed player attempts and outcomes
-  bool _isGameWon = false; // Tracks whether the user successfully hit the correct number target
+  final TextEditingController _soloController = TextEditingController(); // Allocates input typing character streaming buffers
+  final FocusNode _soloFocusNode = FocusNode(); // Binds system soft keyboard visibility configurations
+  
+  late int _secretTargetNumber; // Holds the active hidden code targeted for computational crack cycles
+  int _scoreStrikeWins = 0; // Tracks running multi-round session direct hit win scores
+  
+  String _gameStatusFeedback = "Enter a tactical guess between 1 and 100 to begin!"; // Core operational guidance presentation string
+  Color _feedbackDisplayColor = Colors.white; // Experimental: Controls core status font coloring profiles
+  final List<SoloAttempt> _matchHistoryLog = []; // Tracks scrolling array lists parameters for runtime guesses
+  bool _isRoundComplete = false; // Flag status locking inputs when codes drop successfully
 
   @override
   void initState() {
-    super.initState(); // Executes standard parent initialization tasks first
-    _startNewGame(); // Generates the game parameters right when the screen mounts
+    super.initState(); // Dispatches parent initializer functions first
+    _generateRandomArenaTarget(); // Generates baseline secret codes on step one parameters
+    _soloFocusNode.requestFocus(); // Force soft hardware typing layouts open instantly
   }
 
   @override
   void dispose() {
-    _guessController.dispose(); // Safely teardown the controller memory stream when exiting this context to prevent memory leaks
-    _guessFocusNode.dispose(); // Safely teardown the focus management hardware links to clear memory footprints
+    _soloController.dispose(); // Destroys streaming text references cleanly to secure memory footprints
+    _soloFocusNode.dispose(); // Unlinks focus nodes hooks safely away from hardware engines
     super.dispose();
   }
 
-  // --- GAME RESET CORE INITIALIZATION LOGIC ---
-  void _startNewGame() {
-    final random = Random(); // Instantiates a standard random number generator engine instance
-    _secretNumber = random.nextInt(100) + 1; // Pick a random integer boundary tracking strictly from 1 to 100 inclusive
-    _feedbackMessage = "I picked a number between 1 and 100. Good luck!"; // Restores initial text guidance layout message fields
-    _history.clear(); // Wipes the user's recent attempt history tracking clean for the new match round
-    _isGameWon = false; // Restores winning flag tracking to false so interactive cycles reopen
-    _guessFocusNode.requestFocus(); // Asserts hardware control loops to pop the system keyboard open immediately on new games
+  // --- ARENA RANDOM TARGET GENERATION MATRIX ---
+  void _generateRandomArenaTarget() {
+    // Generates a hidden target integer uniformly distributed between 1 and 100 inclusive
+    _secretTargetNumber = (DateTime.now().microsecondsSinceEpoch % 100) + 1;
   }
 
-  // --- CORE GAME METRICS CALCULATOR LOGIC ---
-  void _processGuess() {
-    if (_isGameWon) return; // Completely shield data tracks from editing if game states are already completed
+  // --- HARD GAME STATE INITIALIZATION RESET ---
+  void _resetSoloMatchCycle() {
+    setState(() {
+      _generateRandomArenaTarget(); // Injects a fresh randomized secret integer map
+      _isRoundComplete = false; // Opens standard text processing gate parameters
+      _matchHistoryLog.clear(); // Wipes item arrays clean for current logging tracks
+      _soloController.clear(); // Flushes string entries completely out of interaction blocks
+      _feedbackDisplayColor = Colors.white; // Resets central prompt color to basic neutral
+      _gameStatusFeedback = "Fresh target locked in! Enter a guess (1-100):"; // Setup guidelines message
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _soloFocusNode.requestFocus();
+      });
+    });
+  }
 
-    final int? currentGuess = int.tryParse(_guessController.text); // Parses typed user string content safely into an interactive integer format
+  // --- CORE GAME LOGIC EVALUATION ENGINE ---
+  void _evaluatePlayerGuessSubmission() {
+    if (_isRoundComplete) {
+      _resetSoloMatchCycle(); // Route commands out directly to system re-initializers if rounds match completed criteria
+      return;
+    }
+
+    final int? playerInputData = int.tryParse(_soloController.text); // Parses typed string metrics safely into integer types
     
-    if (currentGuess == null) return; // Completely abort processing tracking streams if the field input is invalid or blank
+    // Validate entry inputs sit flawlessly within operational boundary targets
+    if (playerInputData == null || playerInputData < 1 || playerInputData > 100) {
+      setState(() {
+        _gameStatusFeedback = "⚠️ Selection invalid! Enter numbers strictly from 1 to 100.";
+        _feedbackDisplayColor = Colors.amberAccent; // Flash alert notice tint maps
+      });
+      return;
+    }
 
     setState(() {
-      String specificFeedback; // Holds the specific outcome flag for this exact guess
-      
-      if (currentGuess == _secretNumber) {
-        _isGameWon = true; // Sets win flag tracker immediately to block layout input methods
-        _guessFocusNode.unfocus(); // Drops soft device keyboard down out of focus since active guessing loops closed
-        specificFeedback = "Correct! 🎉"; // Win tracking baseline indicator string
-        _feedbackMessage = "🎉 Correct! You got it in ${_history.length + 1} tries!"; // Win state messaging injection
-      } else if (currentGuess < _secretNumber) {
-        specificFeedback = "Too Low 📉"; // Low directional metric string assignment
-        _feedbackMessage = "📉 Higher! Try a bigger number."; // Low state guidance tracking injection
+      if (playerInputData == _secretTargetNumber) {
+        // TARGET CRACKED DIRECT HIT DETECTED
+        _isRoundComplete = true; 
+        _scoreStrikeWins++; // Increments session points matrices
+        _soloFocusNode.unfocus(); // Drops soft keyboard away cleanly to expand visibility maps
+        
+        _feedbackDisplayColor = Colors.greenAccent; // Target color: Emerald green for victory confirmation
+        _gameStatusFeedback = "🎯 Target Eliminated! Clean strike on number $_secretTargetNumber!";
+        
+        _matchHistoryLog.insert(0, SoloAttempt(
+          guess: playerInputData,
+          direction: "MATCH SECURED",
+          alertColor: Colors.greenAccent,
+        ));
       } else {
-        specificFeedback = "Too High 📈"; // High directional metric string assignment
-        _feedbackMessage = "📈 Lower! Try a smaller number."; // High state guidance tracking injection
-      }
+        // MISSED TARGET FORMATTING TESTS: REPLACING EMOJIS WITH DIRECTIONAL TINTS
+        final bool isTooLow = playerInputData < _secretTargetNumber;
+        
+        // EXPERIMENTAL FORMAT: Blue for low drops, Orange for high heights (No confusing graphic emojis)
+        final Color contextFormattingColor = isTooLow ? GatorTheme.versusBlue : GatorTheme.vividOrange;
+        final String formattedDirectionText = isTooLow ? "Too Low ↑" : "Too High ↓";
 
-      // Logs the guess alongside its directional label right to the historical list feed
-      _history.insert(0, GuessAttempt(guess: currentGuess, feedback: specificFeedback));
-      
-      _guessController.clear(); // Flushes the active interaction input field clean for the user's next shot
-      
-      if (!_isGameWon) {
-        _guessFocusNode.requestFocus(); // Only demands keyboard focus back if games remain active
+        _feedbackDisplayColor = contextFormattingColor; // Colors the central main feedback text line dynamically
+        _gameStatusFeedback = "Missed! Your guess was $formattedDirectionText";
+
+        _matchHistoryLog.insert(0, SoloAttempt(
+          guess: playerInputData,
+          direction: formattedDirectionText,
+          alertColor: contextFormattingColor, // Locks explicit visual tint references directly into specific index logs
+        ));
+
+        _soloController.clear(); // Empty typing zone ready for instant re-entry sequence
+        
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _soloFocusNode.requestFocus();
+        });
       }
     });
   }
 
-  // --- REUSABLE GLASSMORPHIC HISTORY LIST ROW BUILDER ---
-  Widget _buildHistoryRow(GuessAttempt attempt) {
+  // --- REUSABLE GLASSMORPHIC HISTORY ROW COMPONENT ---
+  Widget _buildSoloHistoryRow(SoloAttempt logItem) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6), // Gaps out historical items cleanly across vertical list paths
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), // Internal cell cushion spacing parameters
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Ties list containers cleanly to your master glass curve token
+        borderRadius: BorderRadius.circular(GatorTheme.glassRadius),
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.08), // Frosted glass layout plate tracking matching visual depths
-            Colors.white.withValues(alpha: 0.02), // Fades out the base layer nicely
+            Colors.white.withValues(alpha: 0.06),
+            Colors.white.withValues(alpha: 0.02),
           ],
         ),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12), // Crisp structural perimeter border stroke lines
+          color: logItem.alertColor.withValues(alpha: 0.25), // Uses the experimental explicit alert color token for cell framing
+          width: 1.2,
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Shoots numbers to the left margin and feedback labels cleanly to the right
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            'Guessed: ${attempt.guess}', // Renders the exact input number submitted by users
+            'You guessed: ${logItem.guess}',
             style: const TextStyle(
-              color: Colors.white, // Paints text strings solid white layout-wide
-              fontSize: 16, // Highly scannable list item font metric scaling
-              fontWeight: FontWeight.bold, // Structural taxonomy bold mappings
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
             ),
           ),
           Text(
-            attempt.feedback, // Displays whether this exact submission was too high or too low
+            logItem.direction,
             style: TextStyle(
-              color: attempt.feedback.contains('Correct') ? Colors.greenAccent : GatorTheme.vividOrange, // Highlights correct guesses in green and hints in vivid orange
-              fontSize: 15, // Clear secondary description scaling parameter rules
-              fontWeight: FontWeight.w600, // Semi-bold configuration weight metrics
+              color: logItem.alertColor, // Applies experimental explicit target colors directly onto directional label outputs
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -132,149 +179,165 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: GatorTheme.screenGradientBackground, // Leverages the centralized global gradient design matrix block cleanly layout wide
+        decoration: GatorTheme.screenGradientBackground, // Anchors standardized custom background canvas layout maps app-wide
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0), // Outer viewport bounding matrix alignment alignment
+            padding: const EdgeInsets.symmetric(horizontal: 30.0),
             child: Column(
               children: [
-                const SizedBox(height: 20), // Top framing spatial clearance
+                const SizedBox(height: 20),
 
                 // --- HEADER NAV APP BAR ROW WRAPPER ---
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distributes app title and exit markers out to maximum layout boundaries
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'SOLO CAMPAIGN', // View header title identification label string
+                    Text(
+                      'SOLO TRAINING',
                       style: TextStyle(
-                        color: Colors.white, // Colors header context solid bright white
-                        fontSize: 20, // Clean dominant navigation font point rule
-                        fontWeight: FontWeight.w900, // Matches bold style guidelines app-wide
-                        letterSpacing: 1.5, // Sets slight technical spacing across tracking vectors
+                        color: GatorTheme.vividOrange, // Distinct solo mode identifier color token
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.5,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white, size: 28), // Absolute X Close layout vector glyph asset
-                      onPressed: () => Navigator.pop(context), // Pops navigation routes backward to drop users back into the main menu screen
+                      icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                      onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                const SizedBox(height: 30), // Structural spatial separation row buffer
+                const SizedBox(height: 24),
 
-                // --- SYSTEM STATE DYNAMIC FEEDBACK BANNER TEXT ---
-                Text(
-                  _feedbackMessage, // Live dynamic text layout tracking higher, lower, and pick instructions variables
-                  textAlign: TextAlign.center, // Dead centers instructional layouts across running phone screen viewports
-                  style: const TextStyle(
-                    color: Colors.white, // Pure clean white for ultimate layout legibility
-                    fontSize: 18, // Clean mid-tier readable presentation font size tracking point
-                    fontWeight: FontWeight.w600, // Alignment block weighting configuration
-                  ),
-                ),
-                const SizedBox(height: 24), // Layout structural separation track
-
-                // --- GLOWING INPUT CONTROLLER ENVELOPE ---
+                // --- MONOLITHIC RUNNING WIN RECORD DISPLAY CARD ---
                 Container(
-                  padding: const EdgeInsets.all(24), // Internal structural boundary container padding matrix
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Syncs container curvatures with the master theme blueprint
+                    borderRadius: BorderRadius.circular(GatorTheme.glassRadius),
                     gradient: LinearGradient(
                       colors: [
-                        Colors.white.withValues(alpha: 0.08), // Soft frosted glass layout filter plate
-                        Colors.white.withValues(alpha: 0.02), // Trailing base backdrop transparency overlay
+                        Colors.white.withValues(alpha: 0.08),
+                        Colors.white.withValues(alpha: 0.02),
                       ],
                     ),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15), // Locks crisp styling borders around active input frames
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.0),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'CURRENT TRAINING STRIKE SCORE',
+                        style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '$_scoreStrikeWins ELIMINATIONS',
+                        style: TextStyle(color: GatorTheme.vividOrange, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 1.0),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+
+                // --- SYSTEM ARENA DYNAMIC FEEDBACK TEXT ROW ---
+                Text(
+                  _gameStatusFeedback,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _feedbackDisplayColor, // Dynamically updates text color to explicitly match experimental directional tints
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // --- GLOWING ARENA ENTRY INTERACTION ZONE ---
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(GatorTheme.glassRadius),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.08),
+                        Colors.white.withValues(alpha: 0.02),
+                      ],
                     ),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                     boxShadow: [
                       BoxShadow(
-                        color: _isGameWon ? Colors.greenAccent.withValues(alpha: 0.08) : GatorTheme.vividOrange.withValues(alpha: 0.08), // Flips shadow ambiance to green upon win
-                        blurRadius: 30, // Spreads glow boundaries widely layout-wide
-                        spreadRadius: 2, // Expands core aura structural parameters gently outwards
+                        color: _feedbackDisplayColor.withValues(alpha: 0.06), // Dynamically shadows text zone frames using experimental alert feedback tones
+                        blurRadius: 30,
+                        spreadRadius: 2,
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
                       Text(
-                        _isGameWon ? 'MATCH COMPLETE' : 'ENTER YOUR GUESS', // Toggles context labels header cleanly
-                        style: const TextStyle(
-                          color: Colors.white70, // Slightly translucent white header layer tint
-                          fontSize: 14, // Secondary body caption point dimension settings
-                          fontWeight: FontWeight.bold, // Bolds helper label hierarchies
-                          letterSpacing: 1.0, // Tracking spacing configuration rules
-                        ),
+                        _isRoundComplete ? 'TARGET RECORD DECLASSIFIED' : 'TACTICAL ENTRY FIELD INPUT',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                       ),
-                      const SizedBox(height: 8), // Mid stack layout spacing spacer block
-                      
-                      // --- CORE TEXT FIELD INTERACTION ELEMENT ---
+                      const SizedBox(height: 8),
                       TextField(
-                        controller: _guessController, // Binds the text editor stream receiver to capture layout input values
-                        focusNode: _guessFocusNode, // Connects our specific focus hook state to maintain uninterrupted keyboard access
-                        enabled: !_isGameWon, // BLOCKS GUESSING: Shuts off text interactions fields fully once players win matches
-                        keyboardType: TextInputType.number, // Restricts user hardware entries strictly to physical number layout grids
-                        textAlign: TextAlign.center, // Keeps active typing streams positioned beautifully in dead layouts center
-                        onSubmitted: (_) => _processGuess(), // Processes calculations instantly if users tap execution actions directly on system keyboards
+                        controller: _soloController,
+                        focusNode: _soloFocusNode,
+                        enabled: !_isRoundComplete,
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                        onSubmitted: (_) => _evaluatePlayerGuessSubmission(),
                         style: TextStyle(
-                          color: _isGameWon ? Colors.greenAccent : GatorTheme.vividOrange, // Morph colors instantly to celebrate winning completions
-                          fontSize: 32, // Giant readable numeric typing scale factor points
-                          fontWeight: FontWeight.w900, // Forces heavy numeric presence on screens
+                          color: _isRoundComplete ? Colors.greenAccent : GatorTheme.vividOrange,
+                          fontSize: 34,
+                          fontWeight: FontWeight.w900,
                         ),
                         decoration: InputDecoration(
-                          hintText: _isGameWon ? '🏆' : '00', // Replaces template targets with trophy glyph elements when won
-                          hintStyle: const TextStyle(color: Colors.white12), // Fades fallback placeholder indicators down out of focus scopes
-                          border: InputBorder.none, // Strips away ugly raw platform text underline bounding frames
+                          hintText: _isRoundComplete ? '🎯' : '00',
+                          hintStyle: const TextStyle(color: Colors.white12),
+                          border: InputBorder.none,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20), // Dynamic layout spatial separation track
+                const SizedBox(height: 24),
 
-                // --- SYSTEM ACTION TRIGGER OPERATION COMMAND ---
+                // --- ACTION DISPATCH OPERATION TRIGGER ---
                 SizedBox(
-                  width: double.infinity, // Forces button element bounds to span margins entirely layout-wide
-                  height: 54, // Sets premium professional structural touch height values
+                  width: double.infinity,
+                  height: 56,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isGameWon ? Colors.greenAccent : GatorTheme.vividOrange, // Updates color configurations layout-wide when won
-                      foregroundColor: _isGameWon ? Colors.black87 : Colors.white, // Shifts button text to dark gray on green backdrop for slick contrast
+                      backgroundColor: _isRoundComplete ? Colors.greenAccent : GatorTheme.vividOrange,
+                      foregroundColor: _isRoundComplete ? Colors.black87 : Colors.white,
                     ),
-                    onPressed: _isGameWon ? _startNewGame : _processGuess, // PLAY AGAIN ASSIGNMENT: Toggles button actions logic instantly depending on game status
-                    child: Text(_isGameWon ? 'PLAY AGAIN' : 'SUBMIT GUESS'), // Toggles character print instructions cleanly on buttons view fields
+                    onPressed: _evaluatePlayerGuessSubmission,
+                    child: Text(_isRoundComplete ? 'NEXT CODE MATRIX TARGET' : 'LAUNCH QUANTUM STRIKE'),
                   ),
                 ),
-                const SizedBox(height: 28), // Spatial allocation block above structural lists fields
+                const SizedBox(height: 28),
 
                 // --- HIGH-VISIBILITY HISTORY SECTION FEED ---
-                if (_history.isNotEmpty)
+                if (_matchHistoryLog.isNotEmpty)
                   Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, // Left aligns lower scrolling track text fields
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          'RECENT ATTEMPTS LOG', // Historical list feed category label text header
-                          style: TextStyle(
-                            color: Colors.white38, // Heavily muted label style configuration
-                            fontSize: 11, // Small functional metadata scaling rules
-                            fontWeight: FontWeight.bold, // Structural taxonomy bold mappings
-                            letterSpacing: 1.2, // Clean modern font tracking adjustments
-                          ),
+                          'ROUND TELEMETRY HISTORICAL LOG',
+                          style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                         ),
-                        const SizedBox(height: 8), // Tiny visual spacing gap below list title header
+                        const SizedBox(height: 8),
                         Expanded(
                           child: ListView.builder(
-                            padding: EdgeInsets.zero, // Removes default framing padding calculations completely
-                            itemCount: _history.length, // Syncs count loops directly to tracking list dimensions
-                            itemBuilder: (context, index) => _buildHistoryRow(_history[index]), // Spits out your high-vis item row element
+                            padding: EdgeInsets.zero,
+                            itemCount: _matchHistoryLog.length,
+                            itemBuilder: (context, index) => _buildSoloHistoryRow(_matchHistoryLog[index]),
                           ),
                         ),
                       ],
                     ),
                   )
                 else
-                  const Spacer(), // Keeps component balances centered perfectly on screens if list logs remain empty
+                  const Spacer(),
               ],
             ),
           ),
