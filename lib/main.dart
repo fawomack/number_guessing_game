@@ -18,18 +18,18 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, // Hides the bright red "DEBUG" banner from Chrome's top right corner
       theme: ThemeData(
         brightness: Brightness.dark, // Switches default framework system calculations to support a rich dark mode setup
-        scaffoldBackgroundColor: const Color(0xFF0F1123), // Sets the base background fallback tint to match our cosmic midnight canvas color
+        scaffoldBackgroundColor: const Color(0xFF0A192F), // Sets the base background fallback tint to match our deep dark gator blue canvas color
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0F1123), // Hooks the master seed reference point into our premium midnight color palette
+          seedColor: const Color(0xFF0A192F), // Hooks the master seed reference point into our premium athletic navy color palette
           brightness: Brightness.dark, // Signals the framework engine to auto-generate dark layout color configurations natively
-          secondary: const Color(0xFFFF8C00), // Binds your signature energetic deep orange color map as the master secondary accent
+          secondary: const Color(0xFFFA4616), // Binds your official high-vibrancy orange color map as the master secondary accent
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFF8C00), // Injects your signature vibrant orange accent color directly onto solid button backgrounds
+            backgroundColor: const Color(0xFFFA4616), // Injects your official vibrant orange accent color directly onto solid button backgrounds
             foregroundColor: Colors.white, // Paints typography elements inside solid buttons a solid bright white
             textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.8), // Enforces bold global text properties and tight tracking spaces
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Evolves button geometry from a boxy twelve pixel layout curve to a premium pill capsule profile
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Applies premium pill curves across all primary actions configuration
             elevation: 4, // Adds subtle depth by casting a soft shadow profile underneath clickable surfaces
           ),
         ),
