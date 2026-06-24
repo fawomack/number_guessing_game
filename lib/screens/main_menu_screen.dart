@@ -1,5 +1,6 @@
 // --- SYSTEM ARCHITECTURE IMPORT DIRECTIVES ---
 import 'package:flutter/material.dart'; // Imports the core Material graphics design library bundle
+import '../theme/gator_theme.dart'; // References the master design system token profile file
 import 'solo_game_screen.dart'; // Imports the solo game screen component view controller
 import 'versus_game_screen.dart'; // Imports the versus arena screen component view controller
 
@@ -18,10 +19,10 @@ class MainMenuScreen extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10), // Injects an explicit ten pixel layout spacing block row gap
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24), // Sets an organic twenty-four pixel curve profile rule on layout edges
+        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Pulls the centralized smooth card curve token from your master theme file
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.12), // Increases glass backing to twelve percent alpha to pop against the brighter background
+            Colors.white.withValues(alpha: 0.12), // Seeds the primary layer position with a twelve percent alpha transparent white
             Colors.white.withValues(alpha: 0.04), // Caps the secondary layer position with a four percent alpha transparent white
           ],
           begin: Alignment.topLeft, // Locks the sweeping linear transformation origin path to the top left frame margin
@@ -41,10 +42,10 @@ class MainMenuScreen extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent, // Locks the raw material layer coloration rule to fully transparent code blocks
-        borderRadius: BorderRadius.circular(24), // Propagates the twenty-four pixel curvature restriction profile down onto material layers
+        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Binds the central structural curvature profile directly onto material layer fields
         child: InkWell(
           onTap: onTap, // Binds the outer functional navigation argument loop directly to active touch taps
-          borderRadius: BorderRadius.circular(24), // Clips interactive touch splash wave vectors inside the twenty-four pixel curves
+          borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Clips interactive touch splash wave vectors inside your themed curves asset
           splashColor: accentColor.withValues(alpha: 0.25), // Fires a vibrant twenty-five percent alpha accent colored ink ripple on tap events
           highlightColor: accentColor.withValues(alpha: 0.08), // Paints a soft eight percent alpha accent colored sheen when held down steady
           child: Padding(
@@ -91,20 +92,9 @@ class MainMenuScreen extends StatelessWidget {
   // --- MAIN VIEWPORT VISUAL ENGINE DRAW ROUTINES ---
   @override // Instructs the framework compile engine to overwrite the standard parent widget rendering loop calculations
   Widget build(BuildContext context) {
-    final orangeColor = Theme.of(context).colorScheme.secondary; // Extracts the master signature orange accent code context from active global themes
-
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF0021A5), // Swaps out the dark midnight navy for a vibrant, saturated official Gator Royal Blue anchor
-              Color(0xFF0A1E3F), // Transitions into a clean, rich athletic deep navy base rather than flat black
-            ],
-            begin: Alignment.topCenter, // Shifts the gradient path to sweep from straight top down for maximum uniform lighting
-            end: Alignment.bottomCenter, // Drops the destination transformation terminal point directly to the lower boundary edge
-          ),
-        ),
+        decoration: GatorTheme.screenGradientBackground, // Leverages the centralized global gradient design matrix block cleanly layout wide
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30.0), // Enforces a solid thirty pixel horizontal outer border margin alignment cap
@@ -117,17 +107,17 @@ class MainMenuScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24), // Sets an internal twenty-four pixel padding frame entirely around the center icon asset
                   decoration: BoxDecoration(
-                    color: orangeColor.withValues(alpha: 0.15), // Deepens the interior icon fill blend ratio to fifteen percent alpha
+                    color: GatorTheme.vividOrange.withValues(alpha: 0.15), // References centralized orange token parsing a fifteen percent alpha tint fill
                     shape: BoxShape.circle, // Configures the backing mask architecture shape profile to a clean perfect geometric circle
                     boxShadow: [
                       BoxShadow(
-                        color: orangeColor.withValues(alpha: 0.25), // Amplifies the neon backing aura density up to twenty-five percent orange
+                        color: GatorTheme.vividOrange.withValues(alpha: 0.25), // Drops an atmospheric bloom shadow tracking the centralized orange code mapping
                         blurRadius: 35, // Tightens the blur range slightly to give a punchier, brighter core lighting bloom effect
                         spreadRadius: 6, // Projects the active orange aura outwards by six full logical units from the boundary lines
                       ),
                     ],
                   ),
-                  child: Icon(Icons.tag, color: orangeColor, size: 64), // Draws a giant signature hashtag number game icon at sixty-four points size
+                  child: Icon(Icons.tag, color: GatorTheme.vividOrange, size: 64), // Injects the central hashtag symbol icon tracking your master color constant
                 ),
                 const SizedBox(height: 24), // Drops an explicit twenty-four pixel vertical padding box to clear logo text lines
                 
@@ -158,7 +148,7 @@ class MainMenuScreen extends StatelessWidget {
                   context: context, // Feeds current active navigation contextual location chains directly down into the method
                   title: 'SOLO CAMPAIGN', // Passes the specific solo campaign text string to write inside the capsule layout
                   icon: Icons.person_rounded, // Assigns a rounded individual user avatar system silhouette vector graphic to the block
-                  accentColor: orangeColor, // Sets the button theme accent colors directly to the master signature orange scheme
+                  accentColor: GatorTheme.vividOrange, // Maps the button leading highlights to your central signature orange asset property
                   onTap: () => Navigator.push(
                     context, // Passes location routing maps down through context tracking parameters
                     MaterialPageRoute(builder: (context) => const SoloGameScreen()), // Compiles a route tracking link building a fresh Solo Game Screen view
@@ -169,7 +159,7 @@ class MainMenuScreen extends StatelessWidget {
                   context: context, // Passes active runtime app context tracks down into the selection module block loop
                   title: 'VERSUS ARENA', // Passes the competitive arena mode text string to write inside the glass capsule layout
                   icon: Icons.people_alt_rounded, // Assigns a dual user competitive group community silhouette vector graphic to the block
-                  accentColor: const Color(0xFF4FA3FF), // Upgrades the versus accent color path to a blazing neon electric sky blue layout tone
+                  accentColor: GatorTheme.versusBlue, // Pulls the dedicated electric sky blue constant safely for structural contrast
                   onTap: () => Navigator.push(
                     context, // Passes target application view architecture context trees downwards
                     MaterialPageRoute(builder: (context) => const VersusGameScreen()), // Compiles a route tracking link building a fresh Versus Game Screen view

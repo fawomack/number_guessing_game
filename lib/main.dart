@@ -1,5 +1,6 @@
 // --- SYSTEM ARCHITECTURE IMPORT DIRECTIVES ---
 import 'package:flutter/material.dart'; // Imports Flutter's UI framework packages (contains all layout blocks like Buttons, Columns, and Colors)
+import 'theme/gator_theme.dart'; // Injects the central source of truth for all Gator brand asset configurations
 import 'screens/main_menu_screen.dart'; // Imports your custom home screen file so this script can launch it as the starting window
 
 // --- APPLICATION HARDWARE ENTRY POINT ---
@@ -18,18 +19,18 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, // Hides the bright red "DEBUG" banner from Chrome's top right corner
       theme: ThemeData(
         brightness: Brightness.dark, // Switches default framework system calculations to support a rich dark mode setup
-        scaffoldBackgroundColor: const Color(0xFF0A192F), // Sets the base background fallback tint to match our deep dark gator blue canvas color
+        scaffoldBackgroundColor: GatorTheme.darkNavy, // Links the base structural background fallback to your central dark navy property constant
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF0A192F), // Hooks the master seed reference point into our premium athletic navy color palette
+          seedColor: GatorTheme.royalBlue, // Hooks the theme generation engine directly into your centralized royal blue color map
           brightness: Brightness.dark, // Signals the framework engine to auto-generate dark layout color configurations natively
-          secondary: const Color(0xFFFA4616), // Binds your official high-vibrancy orange color map as the master secondary accent
+          secondary: GatorTheme.vividOrange, // Maps your signature high-vibrancy orange constant as the master secondary accent tracking point
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFA4616), // Injects your official vibrant orange accent color directly onto solid button backgrounds
+            backgroundColor: GatorTheme.vividOrange, // Injects your centralized vibrant orange accent color directly onto solid button backgrounds
             foregroundColor: Colors.white, // Paints typography elements inside solid buttons a solid bright white
             textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.8), // Enforces bold global text properties and tight tracking spaces
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Applies premium pill curves across all primary actions configuration
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GatorTheme.buttonRadius)), // Feeds the centralized button corner curvature parameter down globally
             elevation: 4, // Adds subtle depth by casting a soft shadow profile underneath clickable surfaces
           ),
         ),
@@ -38,7 +39,7 @@ class MyApp extends StatelessWidget {
             side: const BorderSide(color: Colors.white24, width: 1.5), // Softens the harsh white outline down to a subtle twenty-four percent opacity frame line
             foregroundColor: Colors.white, // Keeps character typography elements tracking across hollow buttons fully solid white
             textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.8), // Pairs font sizes perfectly with the primary actions configuration
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)), // Applies matching premium pill curves across all secondary buttons layout-wide
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(GatorTheme.buttonRadius)), // Syncs secondary hollow action border curves with your master radius property
           ),
         ),
       ),
