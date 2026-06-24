@@ -5,9 +5,10 @@ import '../theme/gator_theme.dart'; // References the master design system token
 
 // --- CUSTOM HISTORICAL DATA OBJECT TRACKER ---
 class SoloAttempt {
+  // --- TELEMETRY OBJECT MATRIX REGISTER ---
   final int guess; // Stores the specific number submitted by the player
-  final String direction; // Stores text mapping: "Too High ↑" or "Too Low ↓"
-  final Color alertColor; // Holds the explicit color token for visual feedback formatting
+  final String direction; // Stores text mapping directional alerts: "Too High ↑" or "Too Low ↓"
+  final Color alertColor; // Holds the explicit color token for dynamic visual feedback formatting
 
   SoloAttempt({
     required this.guess,
@@ -34,7 +35,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   int _soloScore = 0; // Tracks master cumulative game round victories
   
   String _gameStatusFeedback = "Enter a guess between 1 and 100 to begin!"; // Core operational guidance presentation string
-  Color _feedbackDisplayColor = Colors.white; // Controls core status font coloring profiles
+  Color _feedbackDisplayColor = Colors.white; // Controls core status font coloring profiles dynamically
   final List<SoloAttempt> _matchHistoryLog = []; // Tracks scrolling array lists parameters for runtime guesses
   bool _isRoundComplete = false; // Flag status locking inputs when the round ends successfully
 
@@ -42,7 +43,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   void initState() {
     super.initState(); // Dispatches parent initializer functions first
     _generateRandomArenaTarget(); // Generates baseline secret codes on step one parameters
-    _soloFocusNode.requestFocus(); // Force soft hardware typing layouts open instantly
+    _soloFocusNode.requestFocus(); // Force soft hardware typing layouts open instantly upon initialization
   }
 
   @override
@@ -61,7 +62,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   // --- HARD GAME STATE INITIALIZATION RESET ---
   void _resetSoloMatchCycle() {
     setState(() {
-      _generateRandomArenaTarget(); // Injects a fresh randomized secret integer map
+      _generateRandomArenaTarget(); // Regenerates fresh secret reference mapping vectors
       _isRoundComplete = false; // Opens standard text processing gate parameters
       _matchHistoryLog.clear(); // Wipes item arrays clean for current logging tracks
       _soloController.clear(); // Flushes string entries completely out of interaction blocks
@@ -140,42 +141,42 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
   // --- REUSABLE GLASSMORPHIC HISTORY ROW COMPONENT ---
   Widget _buildSoloHistoryRow(SoloAttempt logItem) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6), // Gaps out vertical items log cells cleanly along lists tracks
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), // Internal tracking lists cell borders cushion lines
+      margin: const EdgeInsets.symmetric(vertical: 4), // CRITICAL COMPACTNESS: Reduced vertical cell gap tracking
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), // CRITICAL COMPACTNESS: Tighter padded text cushioning metrics
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Clips container fields inside master theme curve values
+        borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Syncs with global design spec curves tokens
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.06), // Subtle frosting overlays profile records maps
-            Colors.white.withValues(alpha: 0.02), // Transparent base values boundaries
+            Colors.white.withValues(alpha: 0.05), // Light frosting overlay properties profile
+            Colors.white.withValues(alpha: 0.01), // Transparent backing drop layers
           ],
         ),
         border: Border.all(
-          color: logItem.alertColor.withValues(alpha: 0.25), // Uses the experimental explicit alert color token for cell framing
-          width: 1.2, // Continuous hairline border thickness tracking
+          color: logItem.alertColor.withValues(alpha: 0.2), // Uses responsive color codes directly for bounding hairlines
+          width: 1.0, // Consistent thin layout separation border lines
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distributes match tracking indices to opposite poles cleanly across the horizon axis
+        mainAxisAlignment: MainAxisAlignment.spaceBetween, // Expands guess inputs and arrow directions out to the polar layout edges
         children: [
-          // --- GUESS VALUE PRINT ELEMENT ---
+          // --- PLAYER NUMERIC ENTRY VALUE ---
           Text(
             'You guessed: ${logItem.guess}',
             style: const TextStyle(
-              color: Colors.white, // Solid bright white layout-wide font characters sets
-              fontSize: 15, // Scannable high visibility list dimensions points
-              fontWeight: FontWeight.bold, // Bold emphasis weight mapping rules
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
             ),
           ),
 
-          // --- COLOR CODED TEXT DICTIONARY ELEMENT ---
+          // --- DYNAMIC DIRECTION TEXT METRIC WITH DIRECTIONAL TINTS ---
           Text(
             logItem.direction,
             style: TextStyle(
-              color: logItem.alertColor, // Applies experimental explicit target colors directly onto directional label outputs
-              fontSize: 15, // Matching scannable layout sizes
-              fontWeight: FontWeight.bold, // Structural taxonomy bold mappings
-              letterSpacing: 0.5, // Crisp font width spacing adjustments
+              color: logItem.alertColor, // Color matches status outcome (Blue for low, Orange for high)
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.5,
             ),
           ),
         ],
@@ -191,10 +192,10 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
         decoration: GatorTheme.screenGradientBackground, // Anchors standardized custom background canvas layout maps app-wide
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30.0), // Outer viewport bounding matrix alignment alignment
+            padding: const EdgeInsets.symmetric(horizontal: 30.0), // Outer viewport bounding matrix alignment
             child: Column(
               children: [
-                const SizedBox(height: 20), // Top framing spatial clearance
+                const SizedBox(height: 16), // CRITICAL COMPACTNESS: Tightened top framing clearance metrics
 
                 // --- HEADER NAV APP BAR ROW WRAPPER ---
                 Row(
@@ -215,12 +216,12 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24), // Layout structural separation buffer row
+                const SizedBox(height: 16), // CRITICAL COMPACTNESS: Tightened interior layout padding gap
 
                 // --- RUNNING SCORE DISPLAY CARD ---
                 Container(
                   width: double.infinity, // Forces score widget bounds to span margins entirely layout-wide
-                  padding: const EdgeInsets.symmetric(vertical: 16), // Vertical interior structural boundaries cushion lines
+                  padding: const EdgeInsets.symmetric(vertical: 12), // CRITICAL COMPACTNESS: Reduced interior thickness dimensions
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Syncs container curvatures with the master theme blueprint
                     gradient: LinearGradient(
@@ -233,19 +234,20 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                   ),
                   child: Column(
                     children: [
+                      // --- TRACKING PARAMETERS MATRIX LABELS ---
                       const Text(
-                        'CURRENT SCORE', // Cleaned wording text indicator
+                        'CURRENT SCORE', // Cleaned wording text indicator label
                         style: TextStyle(color: Colors.white38, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                       ),
-                      const SizedBox(height: 4), // Interior stack alignment buffer gap
+                      const SizedBox(height: 2), // Interior stack micro buffer clearance gap
                       Text(
                         '$_soloScore WINS', // Display cumulative player round score parameters safely
-                        style: TextStyle(color: GatorTheme.vividOrange, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 1.0),
+                        style: TextStyle(color: GatorTheme.vividOrange, fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1.0),
                       ),
                     ],
                   ),
                 ),
-                const Spacer(), // Centers gameplay text boxes elegantly across device viewports
+                const SizedBox(height: 24), // CRITICAL FIX: Replaced massive open-ended Spacer() layout void with strict control constraints
 
                 // --- SYSTEM ARENA DYNAMIC FEEDBACK TEXT ROW ---
                 Text(
@@ -253,15 +255,15 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _feedbackDisplayColor, // Dynamically updates text color to explicitly match experimental directional tints
-                    fontSize: 17, // Mid-tier highly readable presentation points
+                    fontSize: 16, // Mid-tier highly readable presentation points
                     fontWeight: FontWeight.w700, // Heavy configuration profile parameters
                   ),
                 ),
-                const SizedBox(height: 32), // Layout separation block tracking height dimensions
+                const SizedBox(height: 20), // CRITICAL COMPACTNESS: Tightened separation gap tracking dimension profiles
 
                 // --- GLOWING ARENA ENTRY INTERACTION ZONE ---
                 Container(
-                  padding: const EdgeInsets.all(24), // Internal structural boundary container padding matrix
+                  padding: const EdgeInsets.all(20), // CRITICAL COMPACTNESS: Pulled boundaries inward tightly to reclaim space
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Connects elements cleanly to our master glass curve token
                     gradient: LinearGradient(
@@ -273,19 +275,20 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     border: Border.all(color: Colors.white.withValues(alpha: 0.15)), // Locks crisp styling borders around active input frames
                     boxShadow: [
                       BoxShadow(
-                        color: _feedbackDisplayColor.withValues(alpha: 0.06), // Dynamically shadows text zone frames using experimental alert feedback tones
-                        blurRadius: 30, // Spreads glow boundaries widely layout-wide
-                        spreadRadius: 2, // Expands core aura structural parameters gently outwards
+                        color: _feedbackDisplayColor.withValues(alpha: 0.05), // Dynamically shadows text zone frames using experimental alert feedback tones
+                        blurRadius: 25, // Spreads glow boundaries cleanly layout-wide
+                        spreadRadius: 1, // Expands core aura structural parameters gently outwards
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
+                      // --- DYNAMIC CONTROL BOX FIELD TAGS ---
                       Text(
                         _isRoundComplete ? 'ROUND OVER' : 'ENTER YOUR GUESS', // Restored simple layout text strings
-                        style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.0),
                       ),
-                      const SizedBox(height: 8), // Interior block alignment buffer gap
+                      const SizedBox(height: 4), // Interior context setup micro clearance buffer
                       
                       // --- CORE TEXT FIELD INTERACTION ELEMENT ---
                       TextField(
@@ -297,7 +300,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                         onSubmitted: (_) => _evaluatePlayerGuessSubmission(), // Routes execution triggers automatically through selection parsing engines
                         style: TextStyle(
                           color: _isRoundComplete ? Colors.greenAccent : GatorTheme.vividOrange, // Swaps numeric text colors matching states
-                          fontSize: 34, // Giant readable numeric typing scale factor points
+                          fontSize: 32, // Giant readable numeric typing scale factor points
                           fontWeight: FontWeight.w900, // Forces heavy numeric presence on screens
                         ),
                         decoration: InputDecoration(
@@ -309,12 +312,12 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24), // Dynamic layout spatial separation track
+                const SizedBox(height: 16), // CRITICAL COMPACTNESS: Tighter action button dispatch bridge spacer
 
                 // --- ACTION DISPATCH OPERATION TRIGGER ---
                 SizedBox(
                   width: double.infinity, // Forces button element bounds to span margins entirely layout-wide
-                  height: 56, // Sets premium professional structural touch height values
+                  height: 52, // CRITICAL COMPACTNESS: Streamlined height slightly to maximize history viewport scope
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _isRoundComplete ? Colors.greenAccent : GatorTheme.vividOrange, // Dynamically maps button fills matching states
@@ -324,7 +327,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     child: Text(_isRoundComplete ? 'PLAY AGAIN' : 'SUBMIT GUESS'), // Restored clean standard action text terminology
                   ),
                 ),
-                const SizedBox(height: 28), // Spatial allocation block above structural lists fields
+                const SizedBox(height: 20), // Restructured layout padding directly before list initialization vectors
 
                 // --- HIGH-VISIBILITY HISTORY SECTION FEED ---
                 if (_matchHistoryLog.isNotEmpty)
@@ -332,11 +335,14 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // --- HISTORY REGISTRY STRUCTURAL CAPTIONS ---
                         const Text(
                           'GUESS HISTORY', // Restored clean simple history list title header label string
                           style: TextStyle(color: Colors.white38, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.2),
                         ),
-                        const SizedBox(height: 8), // Tiny visual spacing gap below list title header
+                        const SizedBox(height: 6), // Tiny visual spacing gap below list title header
+                        
+                        // --- SCROLLING DATA CELL LIST VIEWS ---
                         Expanded(
                           child: ListView.builder(
                             padding: EdgeInsets.zero, // Eliminates base margin list processing defaults out cleanly
@@ -348,7 +354,7 @@ class _SoloGameScreenState extends State<SoloGameScreen> {
                     ),
                   )
                 else
-                  const Spacer(), // Balance components evenly across display centers if no history rows exist yet
+                  const Spacer(), // Retained only as a dynamic placeholder when the list is perfectly empty to balance layouts
               ],
             ),
           ),
