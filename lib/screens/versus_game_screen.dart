@@ -4,7 +4,7 @@ import '../theme/gator_theme.dart'; // References the master design system token
 
 // --- CUSTOM HISTORICAL DATA OBJECT TRACKER ---
 class VersusAttempt {
-  final int guess; // Stores the specific number submitted by the guesser
+  final int guess; // Stores the specific number submitted by the current guesser
   final String feedback; // Stores directional hints like "Too High" or "Too Low"
 
   VersusAttempt({required this.guess, required this.feedback});
@@ -23,15 +23,18 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
   final TextEditingController _versusController = TextEditingController(); // Allocates the memory stream to capture active text typing input
   final FocusNode _versusFocusNode = FocusNode(); // Allocates a persistent focus anchor to control device soft keyboard states
   
-  int? _targetNumber; // The secret number input by Player 1 (null means we are still in setup phase)
+  int? _targetNumber; // The secret number currently hidden in the arena (null means we are in a setup phase)
+  int _player1Score = 0; // Tracks master match series victories for Player 1
+  int _player2Score = 0; // Tracks master match series victories for Player 2
   
-  // ignore: prefer_final_fields
-  int _player1Score = 0; // FIXED: Added linter ignore rule to clear warnings since Player 1 only sets numbers and doesn't get points
-  int _player2Score = 0; // Tracks master running game wins for Player 2 (The Tactical Guesser)
+  // --- ROLE AND METRIC TRACKING VARIABLES ---
+  int _currentRound = 1; // Tracks the battle sub-phase (Round 1: P2 guesses | Round 2: P1 guesses)
+  int _player1GuessCount = 0; // Aggregates total attempts taken by Player 1 during their hunting phase
+  int _player2GuessCount = 0; // Aggregates total attempts taken by Player 2 during their hunting phase
   
-  String _arenaFeedback = "Player 1: Enter a secret number (1-100) for Player 2 to guess!"; // Holds current versus prompt tracking context lines
-  final List<VersusAttempt> _arenaHistory = []; // Registers the running sequential history log of all current round guess attempts
-  bool _isRoundOver = false; // Tracks whether Player 2 successfully cracked the secret target
+  String _arenaFeedback = "ROUND 1: Player 1, enter a secret number (1-100) for Player 2 to guess!"; // Holds current versus prompt tracking context lines
+  final List<VersusAttempt> _arenaHistory = []; // Registers the running sequential history log of guess attempts for the active turn
+  bool _isRoundOver = false; // Tracks whether the entire two-part match sequence has completely finished
 
   @override
   void initState() {
@@ -51,29 +54,34 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
     setState(() {
       _targetNumber = null; // Wipes target reference to drop back into Phase 1 (Setup)
       _isRoundOver = false; // Re-opens processing gates for keyboard entries
+      _currentRound = 1; // Reset back to initial round pairing
+      _player1GuessCount = 0; // Flush competitive metrics
+      _player2GuessCount = 0; // Flush competitive metrics
       _arenaHistory.clear(); // Wipes round log matrices clean for the new match cycle
       _versusController.clear(); // Flushes input content fields instantly
-      _arenaFeedback = "Player 1: Enter a secret number (1-100) for Player 2 to guess!"; // Resets guidance header text strings
-      _versusFocusNode.requestFocus(); // Forces keyboard to snap right back up so Player 1 can instantly enter a new target
+      _arenaFeedback = "ROUND 1: Player 1, enter a secret number (1-100) for Player 2 to guess!"; // Resets guidance header text strings
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _versusFocusNode.requestFocus();
+      });
     });
   }
 
   // --- MASTER ROUTING ENGINE FOR SUBMISSIONS ---
   void _handleActionSubmit() {
     if (_isRoundOver) {
-      _startNewArenaMatch(); // If the match is already complete, clicking the trigger initializes a hard structural gameplay reset
+      _startNewArenaMatch(); // Match complete -> trigger reset
     } else if (_targetNumber == null) {
-      _setSecretNumberPhase(); // If no target exists yet, the current text submission routes straight to Player 1's configuration setup logic
+      _setSecretNumberPhase(); // No target active -> process setup entry
     } else {
-      _processGuessPhase(); // If a target is active, the text entry routes straight to Player 2's guess evaluation processor
+      _processGuessPhase(); // Target active -> evaluate current hunter guess
     }
   }
 
-  // --- PHASE 1: PLAYER 1 INPUTS TARGET VALUE ---
+  // --- PHASE 1: TARGET SETTING LOGIC MATRIX ---
   void _setSecretNumberPhase() {
     final int? secretInput = int.tryParse(_versusController.text); // Parses typed user string content safely into an interactive integer format
     
-    // Validates that the input integer sits perfectly inside our technical gameplay window of 1 to 100 inclusive
     if (secretInput == null || secretInput < 1 || secretInput > 100) {
       setState(() {
         _arenaFeedback = "⚠️ Invalid! Please enter a valid number strictly between 1 and 100."; // Injects warning messaging on fail conditions
@@ -83,53 +91,91 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
 
     setState(() {
       _targetNumber = secretInput; // Safely locks target number parameter into active engine reference fields
-      _versusController.clear(); // Instantly clears hidden text string variables out of layout fields
-      _arenaFeedback = "Secret locked! 🔒 Player 2: Start firing guesses!"; // Advances the central guidance layout prompt string text
-      _versusFocusNode.requestFocus(); // Maintains continuous keyboard frame context instantly for Player 2's turn
+      _versusController.clear(); // Instantly clears text string variables out of layout fields
+      
+      if (_currentRound == 1) {
+        _arenaFeedback = "Secret locked! 🔒 Player 2: Start firing guesses!";
+      } else {
+        _arenaFeedback = "Secret locked! 🔒 Player 1: Start firing guesses!";
+      }
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _versusFocusNode.requestFocus();
+      });
     });
   }
 
-  // --- PHASE 2: PLAYER 2 ATTEMPTS TO CRACK TARGET ---
+  // --- PHASE 2: HUNTER GUESS EVALUATION PROCESSOR ---
   void _processGuessPhase() {
     final int? currentGuess = int.tryParse(_versusController.text); // Parses typed guess string content safely into an interactive integer format
     if (currentGuess == null) return; // Completely abort processing tracking streams if the field input is invalid or blank
 
     setState(() {
-      if (currentGuess == _targetNumber) {
-        // SUCCESS: WIN TRIGGER PROCESSING CONTEXT KEYS AND SCORE UPDATES
-        _isRoundOver = true; // Flips round states flag to freeze text interfaces instantly layout-wide
-        _versusFocusNode.unfocus(); // Clear screen clutter by dropping soft hardware keyboard layout away entirely
-
-        _player2Score++; 
-        _arenaFeedback = "🎯 Player 2 cracked the code! The secret number was $_targetNumber!"; // Win state messaging injection
-
-        // Injects clean direct strike records to the front of our scrolling array list
-        _arenaHistory.insert(0, VersusAttempt(
-          guess: currentGuess,
-          feedback: "Direct Hit! 🎯",
-        ));
+      if (_currentRound == 1) {
+        _player2GuessCount++; // Increment guess registry tracking for Player 2
       } else {
-        // MISSED TARGET: FORMULATE DIRECTIONAL HINTS
-        final String direction = currentGuess < _targetNumber! ? "Too Low 📉" : "Too High 📈"; // Formulates direction metrics rules
-        _arenaFeedback = "❌ Missed! Player 2, your guess was ${direction.split(' ')[1].toLowerCase()}!"; // Dynamic instructional guidance update
+        _player1GuessCount++; // Increment guess registry tracking for Player 1
+      }
+
+      if (currentGuess == _targetNumber) {
+        // TARGET CRACKED successfully
+        if (_currentRound == 1) {
+          // ROUND 1 FINISHED -> IMMEDIATE ROLE SWAP SETUP
+          _currentRound = 2; 
+          _targetNumber = null; // Clear target to force Round 2 setup mode
+          _arenaHistory.clear(); // Flush logs clean for Player 1's turn history
+          _versusController.clear();
+          _arenaFeedback = "🎯 Player 2 cracked it in $_player2GuessCount guesses!\nROUND 2: Player 2, set a secret number for Player 1!";
+          
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _versusFocusNode.requestFocus();
+          });
+        } else {
+          // ROUND 2 FINISHED -> FINAL SHOWDOWN CALCULATION
+          _isRoundOver = true;
+          _versusFocusNode.unfocus(); // Clear screen clutter by dropping soft hardware keyboard layout away entirely
+          _arenaHistory.insert(0, VersusAttempt(guess: currentGuess, feedback: "Direct Hit! 🎯"));
+          _calculateMatchWinner();
+        }
+      } else {
+        // MISSED TARGET: LOG ATTEMPT AND GENERATE DIRECTIONAL HINTS
+        final String direction = currentGuess < _targetNumber! ? "Too Low 📉" : "Too High 📈";
+        final String activeGuesser = _currentRound == 1 ? "Player 2" : "Player 1";
         
-        // Logs the guess attempt alongside its directional hint outcome parameters directly into memory lists
+        _arenaFeedback = "❌ Missed! $activeGuesser, your guess was ${direction.split(' ')[1].toLowerCase()}!";
+        
         _arenaHistory.insert(0, VersusAttempt(
           guess: currentGuess,
           feedback: direction,
         ));
         
         _versusController.clear(); // Empty typing zone ready for re-entry sequence
-        _versusFocusNode.requestFocus(); // Ensure cursor stays alive inside text entry bracket so users never have to manually tap the screen
+        
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _versusFocusNode.requestFocus();
+        });
       }
     });
   }
 
+  // --- SHOWDOWN ENGINE: COMPARSION EVALUATOR ---
+  void _calculateMatchWinner() {
+    if (_player1GuessCount < _player2GuessCount) {
+      _player1Score++;
+      _arenaFeedback = "🏆 Player 1 Wins the Arena!\nScore: $_player1GuessCount guesses vs Player 2's $_player2GuessCount!";
+    } else if (_player2GuessCount < _player1GuessCount) {
+      _player2Score++;
+      _arenaFeedback = "🏆 Player 2 Wins the Arena!\nScore: $_player2GuessCount guesses vs Player 1's $_player1GuessCount!";
+    } else {
+      _arenaFeedback = "🤝 It's a Dead Draw! Both players cracked codes in exactly $_player1GuessCount guesses!";
+    }
+  }
+
   // --- REUSABLE SCOREGUARD COMPONENT GRID ELEMENT ---
-  Widget _buildScoreCard(String player, int score, Color color) {
+  Widget _buildScoreCard(String player, int score, String details, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16), // Balances interior typography vertical padding layout positions
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8), // Balances interior typography positions
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(GatorTheme.glassRadius), // Connects scorecard elements cleanly to our master glass curve token
           gradient: LinearGradient(
@@ -146,22 +192,31 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
         child: Column(
           children: [
             Text(
-              player, // Draws player label identification names strings literal data
+              player,
               style: const TextStyle(
-                color: Colors.white60, // Mutes metadata headers to secondary focal priority
-                fontSize: 12, // Small crisp caption scaling parameters
-                fontWeight: FontWeight.bold, // Bolds name fields
-                letterSpacing: 1.0, // Spreads tracking maps modernly
+                color: Colors.white60,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.0,
               ),
             ),
-            const SizedBox(height: 8), // Interior cell stack layout clearance padding box
+            const SizedBox(height: 4),
             Text(
-              '$score WINS', // Prints structural scores variables output tracks
+              '$score WINS',
               style: TextStyle(
-                color: color, // Highlights active score readouts matching assigned operational color context lines
-                fontSize: 24, // Punchy readable scoring scale factor units
-                fontWeight: FontWeight.w900, // Forces maximum visual density for critical scores parameters
-                letterSpacing: 1.0, // Spreads technical tracking tracking parameters
+                color: color,
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.0,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              details, // Displays live active running guess metrics for the player
+              style: const TextStyle(
+                color: Colors.white38,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -172,6 +227,9 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
 
   // --- REUSABLE GLASSMORPHIC ARENA HISTORY ROW BUILDER ---
   Widget _buildArenaHistoryRow(VersusAttempt attempt) {
+    final String activeGuesser = _currentRound == 1 ? "Player 2" : "Player 1";
+    final Color itemAccent = _currentRound == 1 ? GatorTheme.versusBlue : GatorTheme.vividOrange;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6), // Gaps out vertical items log cells cleanly along lists tracks
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14), // Internal tracking lists cell borders cushion lines
@@ -184,14 +242,14 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
           ],
         ),
         border: Border.all(
-          color: attempt.feedback.contains('Hit') ? Colors.greenAccent.withValues(alpha: 0.2) : GatorTheme.versusBlue.withValues(alpha: 0.15), // Tints historical cells matching outcomes
+          color: attempt.feedback.contains('Hit') ? Colors.greenAccent.withValues(alpha: 0.2) : itemAccent.withValues(alpha: 0.15), // Tints historical cells matching outcomes
         ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distributes match tracking indices to opposite poles cleanly
         children: [
           Text(
-            'Player 2 guessed: ${attempt.guess}', // Renders the data integer entry submitted on that index frame
+            '$activeGuesser guessed: ${attempt.guess}', // Renders the data integer entry submitted on that index frame
             style: const TextStyle(
               color: Colors.white, // Solid bright white layout-wide font characters sets
               fontSize: 15, // Scannable high visibility list dimensions points
@@ -201,7 +259,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
           Text(
             attempt.feedback, // Displays dynamic too high, too low, or hit alerts tags variables data
             style: TextStyle(
-              color: attempt.feedback.contains('Hit') ? Colors.greenAccent : GatorTheme.versusBlue, // Lights up wins in emerald and parameters in stadium blue
+              color: attempt.feedback.contains('Hit') ? Colors.greenAccent : itemAccent, // Lights up wins in emerald and parameters in stadium accents
               fontSize: 15, // Matching tracking font size dimensions
               fontWeight: FontWeight.w600, // Semi bold configuration priority layout mapping tracks
             ),
@@ -216,10 +274,22 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
   Widget build(BuildContext context) {
     final bool isSetupPhase = (_targetNumber == null); // Tracks dynamically if we are currently handling player setups
     
-    // Calculate adaptive aesthetic tokens relative to exact game phase sequences
+    // Set active interface colors based on who is actively typing/guesser roles
     final Color phaseAccentColor = _isRoundOver 
         ? Colors.greenAccent 
-        : (isSetupPhase ? GatorTheme.vividOrange : GatorTheme.versusBlue);
+        : (isSetupPhase 
+            ? (_currentRound == 1 ? GatorTheme.vividOrange : GatorTheme.versusBlue)
+            : (_currentRound == 1 ? GatorTheme.versusBlue : GatorTheme.vividOrange));
+
+    // Dynamic title strings mapping setup status parameters
+    String boxHeaderLabel = 'TACTICAL HUNTING ZONE';
+    if (_isRoundOver) {
+      boxHeaderLabel = 'ARENA SUMMARY UNLOCKED';
+    } else if (isSetupPhase) {
+      boxHeaderLabel = _currentRound == 1 ? 'PLAYER 1: HIDDEN SETUP ZONE' : 'PLAYER 2: HIDDEN SETUP ZONE';
+    } else {
+      boxHeaderLabel = _currentRound == 1 ? 'PLAYER 2: RUNNING GUESSES' : 'PLAYER 1: RUNNING GUESSES';
+    }
 
     return Scaffold(
       body: Container(
@@ -255,9 +325,19 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                 // --- COMPETITIVE MATCH SCOREBOARD INTERACTION HEADER ---
                 Row(
                   children: [
-                    _buildScoreCard('PLAYER 1 (SETTER)', _player1Score, GatorTheme.vividOrange), // Draws player one scorecard painted in vibrant signature orange
+                    _buildScoreCard(
+                      'PLAYER 1', 
+                      _player1Score, 
+                      _player1GuessCount > 0 ? 'Guesses: $_player1GuessCount' : 'Status: Setter', 
+                      GatorTheme.vividOrange
+                    ),
                     const SizedBox(width: 16), // Gaps scorecard elements cleanly widthwise across the horizon grid
-                    _buildScoreCard('PLAYER 2 (GUESSER)', _player2Score, GatorTheme.versusBlue), // Draws player two scorecard painted in high contrast versus blue
+                    _buildScoreCard(
+                      'PLAYER 2', 
+                      _player2Score, 
+                      _player2GuessCount > 0 ? 'Guesses: $_player2GuessCount' : 'Status: Waiting', 
+                      GatorTheme.versusBlue
+                    ),
                   ],
                 ),
                 const Spacer(), // Centers gameplay text boxes elegantly across device viewports
@@ -268,7 +348,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white, // High visibility clean solid white typography styling profile
-                    fontSize: 18, // Mid-tier readable presentation points
+                    fontSize: 16, // Mid-tier readable presentation points
                     fontWeight: FontWeight.w600, // Semi bold configuration weight metrics
                   ),
                 ),
@@ -299,12 +379,10 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                   child: Column(
                     children: [
                       Text(
-                        _isRoundOver 
-                            ? 'MATCH RESULT SECURED' 
-                            : (isSetupPhase ? 'PLAYER 1: HIDDEN INPUT ZONE' : 'PLAYER 2: TACTICAL HUNTING ZONE'), // Toggles header labels instantly to map active phase status
+                        boxHeaderLabel,
                         style: const TextStyle(
                           color: Colors.white70, // Slightly translucent white header layer tint
-                          fontSize: 14, // Secondary body caption point dimension settings
+                          fontSize: 13, // Secondary body caption point dimension settings
                           fontWeight: FontWeight.bold, // Bolds helper label hierarchies
                           letterSpacing: 1.0, // Tracking spacing configuration rules
                         ),
@@ -316,7 +394,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                         controller: _versusController, // Binds the text editor stream receiver to capture layout input values
                         focusNode: _versusFocusNode, // Connects our specific focus hook state to maintain uninterrupted keyboard access
                         enabled: !_isRoundOver, // BLOCKS INTERACTION: Shuts off active typing paths fully once rounds end
-                        obscureText: isSetupPhase, // STEALTH CONTROL: Hides Player 1 input text strings with bullet masks so Player 2 can't screen-peek target parameters
+                        obscureText: isSetupPhase, // STEALTH CONTROL: Hides setup input text strings with bullet masks so players can't screen-peek target parameters
                         keyboardType: TextInputType.number, // Restricts user hardware entries strictly to physical number layout grids
                         textAlign: TextAlign.center, // Keeps active typing streams positioned beautifully in dead layouts center
                         onSubmitted: (_) => _handleActionSubmit(), // Routes execution triggers automatically through selection parsing engines
@@ -349,7 +427,7 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                     child: Text(
                       _isRoundOver 
                           ? 'PLAY AGAIN' 
-                          : (isSetupPhase ? 'SET SECRET NUMBER' : 'LAUNCH STRIKE'), // Dynamically shifts display label strings to match active play cycles
+                          : (isSetupPhase ? 'CONFIRM SECRET' : 'LAUNCH STRIKE'), // Dynamically shifts display label strings to match active play cycles
                     ),
                   ),
                 ),
@@ -361,9 +439,9 @@ class _VersusGameScreenState extends State<VersusGameScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'ROUND GUESS REGISTRY LOG', // Competitive live registry category label tag string
-                          style: TextStyle(
+                        Text(
+                          _currentRound == 1 ? 'PLAYER 2 TARGET HISTORY' : 'PLAYER 1 TARGET HISTORY', // Dynamic tracker title headers
+                          style: const TextStyle(
                             color: Colors.white38, // Faded taxonomic label color parameters
                             fontSize: 11, // Small functional metadata scaling rules
                             fontWeight: FontWeight.bold, // Structural taxonomy bold mappings
